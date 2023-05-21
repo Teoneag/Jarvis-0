@@ -12,7 +12,7 @@ class _ComputerNumberSystemState extends State<ComputerNumberSystem> {
   final TextEditingController _ecuationC = TextEditingController();
   int _selectedBase = 10;
   String _resultFinal = '0.00';
-  String _equationBase10 = '';
+  String _equation = '';
   String _errorMessage = '';
   bool _isGood = true;
 
@@ -29,40 +29,40 @@ class _ComputerNumberSystemState extends State<ComputerNumberSystem> {
     });
 
     try {
-      String equation = _ecuationC.text.replaceAll(' ', '');
+      _equation = _ecuationC.text.replaceAll(' ', '');
 
-      if (equation.isEmpty) {
+      if (_equation.isEmpty) {
         setState(() {
           _isGood = true;
           return;
         });
       }
 
-      List<String> numbers =
-          equation.split(RegExp(r"[+\-*/]")); // 10 + 2_16 - F_16
+      List<String> numbers = _equation.split(RegExp(r"[+\-*/]"));
       for (var number in numbers) {
         String nrBase10 = number;
-        if (!number.contains('_')) {
-          continue;
+        if (number.contains('_')) {
+          final parts = number.split('_');
+          final base = int.parse(parts[1]);
+          final numberString = parts[0];
+          if (![2, 8, 10, 16].contains(base)) {
+            return;
+          }
+          nrBase10 = int.parse(numberString, radix: base).toString();
+          _equation = _equation.replaceAll(number, nrBase10);
         }
-        final parts = number.split('_');
-        final base = int.parse(parts[1]);
-        final numberString = parts[0];
-        if (![2, 8, 10, 16].contains(base)) {
-          return;
-        }
-        nrBase10 = int.parse(numberString, radix: base).toString();
-        _equationBase10 = _equationBase10.replaceAll(number, nrBase10);
       }
 
-      final resultRightBase = MathNodeExpression.fromString(_equationBase10)
+      print(_equation);
+
+      final resultRightBase = MathNodeExpression.fromString(_equation)
           .calc(MathVariableValues.none)
           .toInt()
           .toRadixString(_selectedBase)
           .toUpperCase();
 
       setState(() {
-        _equationBase10;
+        _equation;
         _resultFinal = resultRightBase.toString();
         _isGood = true;
       });
@@ -116,8 +116,7 @@ class _ComputerNumberSystemState extends State<ComputerNumberSystem> {
             ),
           ),
           _isGood
-              ? Text(
-                  'Your equation converted to base 10 is: " $_equationBase10 "')
+              ? Text('Your equation converted to base 10 is: " $_equation "')
               : Text('Error: $_errorMessage')
         ],
       ),
