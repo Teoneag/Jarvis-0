@@ -37,6 +37,7 @@ dependencies:
   cupertino_icons: ^1.0.2
   uuid: ^3.0.7
   info_popup: ^3.0.3
+  math_parser: ^1.5.1
 
 dev_dependencies:
   flutter_test:
