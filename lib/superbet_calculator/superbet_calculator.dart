@@ -6,7 +6,7 @@ import 'package:info_popup/info_popup.dart';
 
 import 'bet_model.dart';
 
-//: TODO: add your money at the top
+//: TODO: Add keys to make this faster (f for free switch, d for delete...)
 
 class SuperBetCalculator extends StatefulWidget {
   const SuperBetCalculator({Key? key}) : super(key: key);
@@ -88,20 +88,20 @@ class _SuperBetCalculatorState extends State<SuperBetCalculator> {
     if (!bet.isFree) {
       if (bet.lastInput == 3) {
         bet.moneyOut =
-            (double.tryParse(bet.moneyInC[bet.lastInput].text) ?? 0) *
-                1 /
+            (double.tryParse(bet.moneyInC[bet.lastInput].text) ?? 0) /
                 (double.tryParse(bet.oddsC[3].text) ?? 0);
+        if (bet.moneyOut.isInfinite) {
+          bet.moneyOut = 0;
+          return;
+        }
       } else {
-        setState(() {
-          bet.moneyOut =
-              (double.tryParse(bet.moneyInC[bet.lastInput].text) ?? 0) *
-                  (double.tryParse(bet.oddsC[bet.lastInput].text) ?? 0);
-        });
+        bet.moneyOut =
+            (double.tryParse(bet.moneyInC[bet.lastInput].text) ?? 0) *
+                (double.tryParse(bet.oddsC[bet.lastInput].text) ?? 0);
       }
       if (bet.moneyOut == 0) {
         setState(() {
-          bet.profit =
-              bet.moneyOut - (double.tryParse(bet.moneyInC[3].text) ?? 0);
+          bet.profit = 0;
         });
         return;
       }
@@ -317,6 +317,7 @@ class _SuperBetCalculatorState extends State<SuperBetCalculator> {
                               onChanged: (value) {
                                 setState(() {
                                   bet.isFree = value;
+                                  bet.moneyInC[3].text = _totalMoneyC.text;
                                   _updateMoney(index: index);
                                 });
                               }),
