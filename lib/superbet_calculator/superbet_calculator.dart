@@ -17,21 +17,38 @@ class SuperBetCalculator extends StatefulWidget {
 
 class _SuperBetCalculatorState extends State<SuperBetCalculator> {
   List<Bet> listItems = [];
+  final TextEditingController _totalMoneyC = TextEditingController();
 
   @override
   void dispose() {
     for (var bet in listItems) {
       bet.dispose();
     }
+    _totalMoneyC.dispose();
     super.dispose();
+  }
+
+  void _updateTotalMoney() {
+    for (int i = 0; i < listItems.length; i++) {
+      var bet = listItems[i];
+      setState(() {
+        bet.moneyInC[3].text = _totalMoneyC.text;
+      });
+      bet.lastInput = 3;
+      _updateMoney(index: i);
+    }
   }
 
   void addRow() {
     final uid = const Uuid().v4();
     setState(() {
-      listItems.add(Bet(
-        uid: uid,
-      ));
+      if (_totalMoneyC.text.isEmpty) {
+        listItems.add(Bet(
+          uid: uid,
+        ));
+        return;
+      }
+      listItems.add(Bet(uid: uid, moneyInTotal: _totalMoneyC.text));
     });
   }
 
@@ -171,124 +188,159 @@ class _SuperBetCalculatorState extends State<SuperBetCalculator> {
           ),
         ],
       ),
-      body: ListView.separated(
-        itemCount: listItems.length + 1,
-        itemBuilder: (context, index) {
-          if (index < listItems.length) {
-            final bet = listItems[index];
-            return Column(
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            automaticallyImplyLeading: false,
+            pinned: true,
+            title: Row(
               children: [
-                Table(
-                  border: TableBorder.all(),
-                  defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                  children: [
-                    TableRow(
-                      children: [
-                        for (int i = 0; i < 4; i++)
-                          TableCell(
-                              child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Center(child: Text(columnNames[i])),
-                          )),
-                      ],
+                const Text('Your total money: '),
+                SizedBox(
+                  width: 40,
+                  height: 45,
+                  child: TextField(
+                    controller: _totalMoneyC,
+                    onChanged: (_) => _updateTotalMoney(),
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      hintText: 'XXX',
+                      suffix: Text('\$'),
                     ),
-                    TableRow(children: [
-                      for (int i = 0; i < 4; i++)
-                        TableCell(
-                          child: TextField(
-                            controller: bet.oddsC[i],
-                            onChanged: (value) => _updateOddsTotal(index),
-                            keyboardType: TextInputType.number,
-                            decoration: InputDecoration(
-                                hintText: 'Odds ${columnNames[i]}'),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                    ]),
-                    TableRow(
-                      children: [
-                        for (int i = 0; i < 4; i++)
-                          TableCell(
-                            child: TextField(
-                              controller: bet.moneyInC[i],
-                              style: const TextStyle(color: Colors.red),
-                              onChanged: (value) => _updateMoney(index: index),
-                              keyboardType: TextInputType.number,
-                              decoration: InputDecoration(
-                                  hintText: '${columnNames[i]} \$',
-                                  suffix: const Padding(
-                                    padding: EdgeInsets.only(right: 8.0),
-                                    child: Text('\$'),
-                                  )),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                      ],
-                    ),
-                    if (bet.isFree)
-                      TableRow(
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SliverList(
+            delegate: SliverChildBuilderDelegate(
+              childCount: listItems.length + 1,
+              (context, index) {
+                if (index < listItems.length) {
+                  final bet = listItems[index];
+                  return Column(
+                    children: [
+                      Table(
+                        border: TableBorder.all(),
+                        defaultVerticalAlignment:
+                            TableCellVerticalAlignment.middle,
                         children: [
-                          for (int i = 0; i < 4; i++)
-                            TableCell(
-                              child: TextField(
-                                controller: bet.moneyFreeC[i],
-                                style: const TextStyle(color: Colors.orange),
-                                onChanged: (value) =>
-                                    _updateMoney(index: index),
-                                keyboardType: TextInputType.number,
-                                decoration: InputDecoration(
-                                    hintText: 'free ${columnNames[i]} \$',
-                                    suffix: const Padding(
-                                      padding: EdgeInsets.only(right: 8.0),
-                                      child: Text('\$'),
-                                    )),
-                                textAlign: TextAlign.center,
+                          TableRow(
+                            children: [
+                              for (int i = 0; i < 4; i++)
+                                TableCell(
+                                    child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Center(child: Text(columnNames[i])),
+                                )),
+                            ],
+                          ),
+                          TableRow(children: [
+                            for (int i = 0; i < 4; i++)
+                              TableCell(
+                                child: TextField(
+                                  controller: bet.oddsC[i],
+                                  onChanged: (value) => _updateOddsTotal(index),
+                                  keyboardType: TextInputType.number,
+                                  decoration: InputDecoration(
+                                      hintText: 'Odds ${columnNames[i]}'),
+                                  textAlign: TextAlign.center,
+                                ),
                               ),
+                          ]),
+                          TableRow(
+                            children: [
+                              for (int i = 0; i < 4; i++)
+                                TableCell(
+                                  child: TextField(
+                                    controller: bet.moneyInC[i],
+                                    style: const TextStyle(color: Colors.red),
+                                    onChanged: (value) =>
+                                        _updateMoney(index: index),
+                                    keyboardType: TextInputType.number,
+                                    decoration: InputDecoration(
+                                      hintText: '${columnNames[i]} \$',
+                                      suffix: const Padding(
+                                        padding: EdgeInsets.only(right: 8.0),
+                                        child: Text('\$'),
+                                      ),
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                            ],
+                          ),
+                          if (bet.isFree)
+                            TableRow(
+                              children: [
+                                for (int i = 0; i < 4; i++)
+                                  TableCell(
+                                    child: TextField(
+                                      controller: bet.moneyFreeC[i],
+                                      style:
+                                          const TextStyle(color: Colors.orange),
+                                      onChanged: (value) =>
+                                          _updateMoney(index: index),
+                                      keyboardType: TextInputType.number,
+                                      decoration: InputDecoration(
+                                          hintText: 'free ${columnNames[i]} \$',
+                                          suffix: const Padding(
+                                            padding:
+                                                EdgeInsets.only(right: 8.0),
+                                            child: Text('\$'),
+                                          )),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                              ],
                             ),
                         ],
                       ),
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    Text(
-                      'Win: ${bet.moneyOut.toStringAsFixed(3)}',
-                      style: const TextStyle(color: Colors.green, fontSize: 18),
-                    ),
-                    Text(
-                      'Profit: ${bet.profit.toStringAsFixed(3)}',
-                      style: TextStyle(
-                          color: bet.profit < 0 ? Colors.red : Colors.green,
-                          fontSize: 18),
-                    ),
-                    Switch(
-                        value: bet.isFree,
-                        onChanged: (value) {
-                          setState(() {
-                            bet.isFree = value;
-                            _updateMoney(index: index);
-                          });
-                        }),
-                    IconButton(
-                      onPressed: () => deleteRow(index),
-                      icon: const Icon(
-                        Icons.delete,
-                        color: Colors.red,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          Text(
+                            'Win: ${bet.moneyOut.toStringAsFixed(3)}',
+                            style: const TextStyle(
+                                color: Colors.green, fontSize: 18),
+                          ),
+                          Text(
+                            'Profit: ${bet.profit.toStringAsFixed(3)}',
+                            style: TextStyle(
+                                color:
+                                    bet.profit < 0 ? Colors.red : Colors.green,
+                                fontSize: 18),
+                          ),
+                          Switch(
+                              value: bet.isFree,
+                              onChanged: (value) {
+                                setState(() {
+                                  bet.isFree = value;
+                                  _updateMoney(index: index);
+                                });
+                              }),
+                          IconButton(
+                            onPressed: () => deleteRow(index),
+                            icon: const Icon(
+                              Icons.delete,
+                              color: Colors.red,
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
-                ),
-              ],
-            );
-          } else {
-            return ElevatedButton(
-              onPressed: addRow,
-              child: const Text('Add Row'),
-            );
-          }
-        },
-        separatorBuilder: (BuildContext context, int index) => const Divider(),
+                    ],
+                  );
+                } else {
+                  return ElevatedButton(
+                    onPressed: addRow,
+                    child: const Text('Add Row'),
+                  );
+                }
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
