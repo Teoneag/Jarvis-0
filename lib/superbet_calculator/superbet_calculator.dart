@@ -83,7 +83,9 @@ class _SuperBetCalculatorState extends State<SuperBetCalculator> {
   }
 
   void _updateMoney({int? currentInput, required int index}) {
+    print('current input $currentInput');
     final bet = listItems[index];
+    print(bet.lastInput);
     bet.lastInput = currentInput ?? bet.lastInput;
 
     if (!bet.isFree) {
@@ -257,8 +259,8 @@ class _SuperBetCalculatorState extends State<SuperBetCalculator> {
                                   child: TextField(
                                     controller: bet.moneyInC[i],
                                     style: const TextStyle(color: Colors.red),
-                                    onChanged: (value) =>
-                                        _updateMoney(index: index),
+                                    onChanged: (value) => _updateMoney(
+                                        index: index, currentInput: i),
                                     keyboardType: TextInputType.number,
                                     decoration: InputDecoration(
                                       hintText: '${columnNames[i]} \$',
