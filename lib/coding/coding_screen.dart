@@ -23,6 +23,12 @@ class CodingScreen extends StatelessWidget {
               },
               child: const Text('Computer number system'),
             ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pushNamed(Routes.acslPrefixPostfixInfix);
+              },
+              child: const Text('Prefix Postfix Infix Notation'),
+            ),
           ],
         ),
       ),

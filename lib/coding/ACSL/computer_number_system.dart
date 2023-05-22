@@ -53,8 +53,6 @@ class _ComputerNumberSystemState extends State<ComputerNumberSystem> {
         }
       }
 
-      print(_equation);
-
       final resultRightBase = MathNodeExpression.fromString(_equation)
           .calc(MathVariableValues.none)
           .toInt()
