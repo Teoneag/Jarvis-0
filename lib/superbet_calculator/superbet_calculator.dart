@@ -8,6 +8,7 @@ import 'bet_model.dart';
 
 //: TODO: Add keys to make this faster (f for free switch, d for delete...)
 // TODO: Make bot to automatically take data from Superbet and make the bets for me
+// TODO: History of bets
 
 class SuperBetCalculator extends StatefulWidget {
   const SuperBetCalculator({Key? key}) : super(key: key);
@@ -19,6 +20,7 @@ class SuperBetCalculator extends StatefulWidget {
 class _SuperBetCalculatorState extends State<SuperBetCalculator> {
   List<Bet> listItems = [];
   final TextEditingController _totalMoneyC = TextEditingController();
+  final TextEditingController _moneyFreeBetC = TextEditingController();
 
   @override
   void dispose() {
@@ -26,13 +28,30 @@ class _SuperBetCalculatorState extends State<SuperBetCalculator> {
       bet.dispose();
     }
     _totalMoneyC.dispose();
+    _moneyFreeBetC.dispose();
     super.dispose();
+  }
+
+  void _updatetotalMoneyFree() {
+    for (int i = 0; i < listItems.length; i++) {
+      var bet = listItems[i];
+      setState(() {
+        if (_moneyFreeBetC.text.isNotEmpty) {
+          bet.isFree = true;
+          bet.moneyFreeC[3].text = _moneyFreeBetC.text;
+        } else {
+          bet.isFree = false;
+        }
+      });
+      _updateMoney(index: i);
+    }
   }
 
   void _updateTotalMoney() {
     for (int i = 0; i < listItems.length; i++) {
       var bet = listItems[i];
       setState(() {
+        bet.isFree = false;
         bet.moneyInC[3].text = _totalMoneyC.text;
       });
       bet.lastInput = 3;
@@ -49,7 +68,10 @@ class _SuperBetCalculatorState extends State<SuperBetCalculator> {
         ));
         return;
       }
-      listItems.add(Bet(uid: uid, moneyInTotal: _totalMoneyC.text));
+      listItems.add(Bet(
+          uid: uid,
+          moneyInTotal: _totalMoneyC.text,
+          moneyFreeBet: _moneyFreeBetC.text));
     });
   }
 
@@ -83,9 +105,7 @@ class _SuperBetCalculatorState extends State<SuperBetCalculator> {
   }
 
   void _updateMoney({int? currentInput, required int index}) {
-    print('current input $currentInput');
     final bet = listItems[index];
-    print(bet.lastInput);
     bet.lastInput = currentInput ?? bet.lastInput;
 
     if (!bet.isFree) {
@@ -128,6 +148,11 @@ class _SuperBetCalculatorState extends State<SuperBetCalculator> {
           bet.moneyInC[3].text = moneyInTotal.toStringAsFixed(3);
         }
         bet.profit = bet.moneyOut - moneyInTotal;
+        if (bet.profit < 0) {
+          bet.isOk = false;
+        } else {
+          bet.isOk = true;
+        }
       });
       return;
     }
@@ -196,22 +221,41 @@ class _SuperBetCalculatorState extends State<SuperBetCalculator> {
           SliverAppBar(
             automaticallyImplyLeading: false,
             pinned: true,
-            title: Row(
+            title: Column(
               children: [
-                const Text('Your total money: '),
-                SizedBox(
-                  width: 40,
-                  height: 45,
-                  child: TextField(
-                    controller: _totalMoneyC,
-                    onChanged: (_) => _updateTotalMoney(),
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      hintText: 'XXX',
-                      suffix: Text('\$'),
+                Row(
+                  children: [
+                    const Text('Your total money: '),
+                    SizedBox(
+                      width: 40,
+                      height: 45,
+                      child: TextField(
+                        controller: _totalMoneyC,
+                        onChanged: (_) => _updateTotalMoney(),
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          hintText: 'XXX',
+                          suffix: Text('\$'),
+                        ),
+                      ),
                     ),
-                  ),
+                    const Text(', free bet: '),
+                    SizedBox(
+                      width: 40,
+                      height: 45,
+                      child: TextField(
+                        controller: _moneyFreeBetC,
+                        onChanged: (_) => _updatetotalMoneyFree(),
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          hintText: 'XXX',
+                          suffix: Text('\$'),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -300,39 +344,46 @@ class _SuperBetCalculatorState extends State<SuperBetCalculator> {
                             ),
                         ],
                       ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          Text(
-                            'Win: ${bet.moneyOut.toStringAsFixed(3)}',
-                            style: const TextStyle(
-                                color: Colors.green, fontSize: 18),
-                          ),
-                          Text(
-                            'Profit: ${bet.profit.toStringAsFixed(3)}',
-                            style: TextStyle(
-                                color:
-                                    bet.profit < 0 ? Colors.red : Colors.green,
-                                fontSize: 18),
-                          ),
-                          Switch(
-                              value: bet.isFree,
-                              onChanged: (value) {
-                                setState(() {
-                                  bet.isFree = value;
-                                  bet.moneyInC[3].text = _totalMoneyC.text;
-                                  _updateMoney(index: index);
-                                });
-                              }),
-                          IconButton(
-                            onPressed: () => deleteRow(index),
-                            icon: const Icon(
-                              Icons.delete,
-                              color: Colors.red,
+                      bet.isOk
+                          ? Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                Text(
+                                  'Win: ${bet.moneyOut.toStringAsFixed(3)}',
+                                  style: const TextStyle(
+                                      color: Colors.green, fontSize: 18),
+                                ),
+                                Text(
+                                  'Profit: ${bet.profit.toStringAsFixed(3)}',
+                                  style: TextStyle(
+                                      color: bet.profit < 0
+                                          ? Colors.red
+                                          : Colors.green,
+                                      fontSize: 18),
+                                ),
+                                Switch(
+                                    value: bet.isFree,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        bet.isFree = value;
+                                        bet.moneyInC[3].text =
+                                            _totalMoneyC.text;
+                                        _updateMoney(index: index);
+                                      });
+                                    }),
+                                IconButton(
+                                  onPressed: () => deleteRow(index),
+                                  icon: const Icon(
+                                    Icons.delete,
+                                    color: Colors.red,
+                                  ),
+                                ),
+                              ],
+                            )
+                          : const Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Text('Please complete at least 2 odds'),
                             ),
-                          ),
-                        ],
-                      ),
                     ],
                   );
                 } else {

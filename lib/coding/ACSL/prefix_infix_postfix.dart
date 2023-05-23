@@ -12,7 +12,7 @@ List<String> notations = ['Prefix', 'Infix', 'Postfix'];
 
 class _PrefixInfixPostfixState extends State<PrefixInfixPostfix> {
   final TextEditingController _ecuationC = TextEditingController();
-  int _selectedNotation = 0;
+  int _selectedNotation = 1;
   String _prefixResult = '';
   String _infixResult = '';
   String _postfixResult = '';
@@ -25,13 +25,53 @@ class _PrefixInfixPostfixState extends State<PrefixInfixPostfix> {
     super.dispose();
   }
 
+  bool isOperator(String x) {
+    switch (x) {
+      case "+":
+      case "-":
+      case "/":
+      case "*":
+      case "^":
+      case "%":
+        return true;
+    }
+    return false;
+  }
+
+  String preToInfix(String prefixEquation) {
+    print('Starting');
+    try {
+      List<String> stack = [];
+      int i = prefixEquation.length - 1;
+      for (i; i >= 0; i--) {
+        print('i: $i');
+        print(stack);
+        if (!isOperator(prefixEquation[i])) {
+          stack.insert(0, prefixEquation[i]);
+        } else {
+          String str = "(${stack[0]}${prefixEquation[i]}${stack[1]})";
+          print('str: $str');
+          stack.removeAt(0);
+          stack.removeAt(0);
+          stack.insert(0, str);
+        }
+      }
+      return stack[0];
+    } catch (e) {
+      print(e);
+      return '';
+    }
+  }
+
   void _updateResult() {
+    print("Done: ${preToInfix('+ 3 4')}");
     setState(() {
       _isGood = false;
     });
 
     try {
       String equation = _ecuationC.text.replaceAll(' ', '');
+      equation = equation.replaceAll('↑', '^');
 
       if (equation.isEmpty) {
         setState(() {
@@ -75,7 +115,7 @@ class _PrefixInfixPostfixState extends State<PrefixInfixPostfix> {
           break;
       }
       setState(() {
-        _infixResult = equation;
+        _infixResult = infix;
         _postfixResult = postfix;
         _prefixResult = prefix;
         _isGood = true;

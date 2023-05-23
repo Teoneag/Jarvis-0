@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 class Bet {
   final String uid;
+  bool isOk = false;
   int lastInput = 3;
   double moneyOut = 0;
   double profit = 0;
@@ -13,9 +14,17 @@ class Bet {
   List<TextEditingController> moneyFreeC =
       List<TextEditingController>.generate(4, (_) => TextEditingController());
 
-  Bet({required this.uid, String? moneyFreeTotal, String? moneyInTotal}) {
+  Bet(
+      {required this.uid,
+      String? moneyFreeTotal,
+      String? moneyInTotal,
+      String? moneyFreeBet}) {
     moneyInC[3].text = moneyInTotal ?? '100';
     moneyFreeC[3].text = moneyFreeTotal ?? '23';
+    if (moneyFreeBet != null && moneyFreeBet != '') {
+      isFree = true;
+      moneyFreeC[3].text = moneyFreeBet;
+    }
   }
 
   void dispose() {
