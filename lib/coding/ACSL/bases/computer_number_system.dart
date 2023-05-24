@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:math_parser/math_parser.dart';
 
+// TODO: select implicit base
+// TODO: Make new text box for bit-string flicking
+
 class ComputerNumberSystem extends StatefulWidget {
   const ComputerNumberSystem({super.key});
 
@@ -73,51 +76,54 @@ class _ComputerNumberSystemState extends State<ComputerNumberSystem> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Computer number system')),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _ecuationC,
-                    onChanged: (value) => _updateResult(),
-                    decoration: InputDecoration(
-                        filled: true,
-                        fillColor: _isGood ? Colors.green : Colors.red,
-                        hintText: 'Ex: F5AD_16 - (5 + 10_8) * 1110_2'),
-                  ),
+    return Column(
+      children: [
+        const SizedBox(height: 10),
+        Text(
+          'Computer number system',
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _ecuationC,
+                  onChanged: (value) => _updateResult(),
+                  decoration: InputDecoration(
+                      filled: true,
+                      fillColor: _isGood ? Colors.green : Colors.red,
+                      hintText: 'Ex: F5AD_16 - (5 + 10_8) * 1110_2'),
                 ),
-                const SizedBox(width: 10),
-                Text('= $_resultFinal'),
-                const SizedBox(width: 10),
-                DropdownButton<int>(
-                  value: _selectedBase,
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedBase = value ?? 10;
-                    });
-                    _updateResult();
-                  },
-                  items: <int>[2, 8, 10, 16]
-                      .map<DropdownMenuItem<int>>((int value) {
-                    return DropdownMenuItem<int>(
-                      value: value,
-                      child: Text(value.toString()),
-                    );
-                  }).toList(),
-                ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 10),
+              Text('= $_resultFinal'),
+              const SizedBox(width: 10),
+              DropdownButton<int>(
+                value: _selectedBase,
+                onChanged: (value) {
+                  setState(() {
+                    _selectedBase = value ?? 10;
+                  });
+                  _updateResult();
+                },
+                items:
+                    <int>[2, 8, 10, 16].map<DropdownMenuItem<int>>((int value) {
+                  return DropdownMenuItem<int>(
+                    value: value,
+                    child: Text(value.toString()),
+                  );
+                }).toList(),
+              ),
+            ],
           ),
-          _isGood
-              ? Text('Your equation converted to base 10 is: " $_equation "')
-              : Text('Error: $_errorMessage')
-        ],
-      ),
+        ),
+        _isGood
+            ? Text('Your equation converted to base 10 is: " $_equation "')
+            : Text('Error: $_errorMessage'),
+        const SizedBox(height: 10),
+      ],
     );
   }
 }

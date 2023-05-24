@@ -21,7 +21,7 @@ class CodingScreen extends StatelessWidget {
                 Navigator.of(context)
                     .pushNamed(Routes.acslComputerNumberSystem);
               },
-              child: const Text('Computer number system'),
+              child: const Text('Bases'),
             ),
             TextButton(
               onPressed: () {

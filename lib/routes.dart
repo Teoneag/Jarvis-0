@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'coding/ACSL/computer_number_system/computer_number_system.dart';
+import 'coding/ACSL/bases/bases.dart';
 import 'coding/ACSL/prefix_infix_postfix/prefix_infix_postfix.dart';
 import '/coding/coding_screen.dart';
 import '/main.dart';
@@ -17,6 +17,6 @@ final Map<String, WidgetBuilder> routes = {
   Routes.superbetCalculator: (context) => const SuperBetCalculator(),
   Routes.home: (context) => const MyHomePage(),
   Routes.coding: (context) => const CodingScreen(),
-  Routes.acslComputerNumberSystem: (context) => const ComputerNumberSystem(),
+  Routes.acslComputerNumberSystem: (context) => const Bases(),
   Routes.acslPrefixPostfixInfix: (context) => const PrefixInfixPostfix(),
 };
