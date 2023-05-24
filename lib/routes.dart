@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '/coding/ACSL/computer_number_system.dart';
-import '/coding/ACSL/prefix_infix_postfix.dart';
+import 'coding/ACSL/computer_number_system/computer_number_system.dart';
+import 'coding/ACSL/prefix_infix_postfix/prefix_infix_postfix.dart';
 import '/coding/coding_screen.dart';
 import '/main.dart';
 import '/superbet_calculator/superbet_calculator.dart';

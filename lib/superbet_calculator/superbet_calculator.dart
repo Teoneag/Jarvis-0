@@ -6,9 +6,10 @@ import 'package:info_popup/info_popup.dart';
 
 import 'bet_model.dart';
 
-//: TODO: Add keys to make this faster (f for free switch, d for delete...)
+// TODO: Add keys to make this faster (f for free switch, d for delete...)
 // TODO: Make bot to automatically take data from Superbet and make the bets for me
 // TODO: History of bets
+// TODO: Change order of bets, so to the top are the best options (auto and drag & drop)
 
 class SuperBetCalculator extends StatefulWidget {
   const SuperBetCalculator({Key? key}) : super(key: key);
