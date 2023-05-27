@@ -63,16 +63,22 @@ class _SuperBetCalculatorState extends State<SuperBetCalculator> {
   void addRow() {
     final uid = const Uuid().v4();
     setState(() {
-      if (_totalMoneyC.text.isEmpty) {
+      if (_totalMoneyC.text.isNotEmpty) {
         listItems.add(Bet(
           uid: uid,
+          moneyInTotal: _totalMoneyC.text,
+        ));
+        return;
+      } else if (_moneyFreeBetC.text.isNotEmpty) {
+        listItems.add(Bet(
+          uid: uid,
+          moneyFreeBet: _moneyFreeBetC.text,
         ));
         return;
       }
       listItems.add(Bet(
-          uid: uid,
-          moneyInTotal: _totalMoneyC.text,
-          moneyFreeBet: _moneyFreeBetC.text));
+        uid: uid,
+      ));
     });
   }
 
@@ -149,11 +155,7 @@ class _SuperBetCalculatorState extends State<SuperBetCalculator> {
           bet.moneyInC[3].text = moneyInTotal.toStringAsFixed(3);
         }
         bet.profit = bet.moneyOut - moneyInTotal;
-        if (bet.profit < 0) {
-          bet.isOk = false;
-        } else {
-          bet.isOk = true;
-        }
+        bet.isOk = true;
       });
       return;
     }
@@ -196,6 +198,7 @@ class _SuperBetCalculatorState extends State<SuperBetCalculator> {
     setState(() {
       bet.moneyInC[3].text = moneyInTotal.toStringAsFixed(3);
       bet.profit = bet.moneyOut - moneyInTotal;
+      bet.isOk = true;
     });
   }
 
@@ -345,46 +348,56 @@ class _SuperBetCalculatorState extends State<SuperBetCalculator> {
                             ),
                         ],
                       ),
-                      bet.isOk
-                          ? Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                Text(
-                                  'Win: ${bet.moneyOut.toStringAsFixed(3)}',
-                                  style: const TextStyle(
-                                      color: Colors.green, fontSize: 18),
-                                ),
-                                Text(
-                                  'Profit: ${bet.profit.toStringAsFixed(3)}',
-                                  style: TextStyle(
-                                      color: bet.profit < 0
-                                          ? Colors.red
-                                          : Colors.green,
-                                      fontSize: 18),
-                                ),
-                                Switch(
-                                    value: bet.isFree,
-                                    onChanged: (value) {
-                                      setState(() {
-                                        bet.isFree = value;
-                                        bet.moneyInC[3].text =
-                                            _totalMoneyC.text;
-                                        _updateMoney(index: index);
-                                      });
-                                    }),
-                                IconButton(
-                                  onPressed: () => deleteRow(index),
-                                  icon: const Icon(
-                                    Icons.delete,
-                                    color: Colors.red,
-                                  ),
-                                ),
-                              ],
-                            )
-                          : const Padding(
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          Visibility(
+                            visible: !bet.isOk,
+                            child: const Padding(
                               padding: EdgeInsets.all(8.0),
                               child: Text('Please complete at least 2 odds'),
                             ),
+                          ),
+                          Visibility(
+                            visible: bet.isOk,
+                            child: Text(
+                              'Win: ${bet.moneyOut.toStringAsFixed(3)}',
+                              style: const TextStyle(
+                                  color: Colors.green, fontSize: 18),
+                            ),
+                          ),
+                          Visibility(
+                            visible: bet.isOk,
+                            child: Text(
+                              'Profit: ${bet.profit.toStringAsFixed(3)}',
+                              style: TextStyle(
+                                  color: bet.profit < 0
+                                      ? Colors.red
+                                      : Colors.green,
+                                  fontSize: 18),
+                            ),
+                          ),
+                          Visibility(
+                            visible: bet.isOk,
+                            child: Switch(
+                                value: bet.isFree,
+                                onChanged: (value) {
+                                  setState(() {
+                                    bet.isFree = value;
+                                    bet.moneyInC[3].text = _totalMoneyC.text;
+                                    _updateMoney(index: index);
+                                  });
+                                }),
+                          ),
+                          IconButton(
+                            onPressed: () => deleteRow(index),
+                            icon: const Icon(
+                              Icons.delete,
+                              color: Colors.red,
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   );
                 } else {
