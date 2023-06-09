@@ -4,21 +4,22 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import 'package:info_popup/info_popup.dart';
 
-import 'bet_model.dart';
+import '../bet_model.dart';
 
 // TODO: Add keys to make this faster (f for free switch, d for delete...)
 // TODO: Make bot to automatically take data from Superbet and make the bets for me
 // TODO: History of bets
 // TODO: Change order of bets, so to the top are the best options (auto and drag & drop)
 
-class SuperBetCalculator extends StatefulWidget {
-  const SuperBetCalculator({Key? key}) : super(key: key);
+class SuperbetCalculatorScreen extends StatefulWidget {
+  const SuperbetCalculatorScreen({Key? key}) : super(key: key);
 
   @override
-  State<SuperBetCalculator> createState() => _SuperBetCalculatorState();
+  State<SuperbetCalculatorScreen> createState() =>
+      _SuperbetCalculatorScreenState();
 }
 
-class _SuperBetCalculatorState extends State<SuperBetCalculator> {
+class _SuperbetCalculatorScreenState extends State<SuperbetCalculatorScreen> {
   List<Bet> listItems = [];
   final TextEditingController _totalMoneyC = TextEditingController();
   final TextEditingController _moneyFreeBetC = TextEditingController();

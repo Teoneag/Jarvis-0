@@ -9,8 +9,8 @@ class Bases extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Bases')),
-      body: Column(
-        children: const [
+      body: const Column(
+        children: [
           ComputerNumberSystem(),
           BitStringFlicking(),
         ],

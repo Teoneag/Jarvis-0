@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:jarvis_0/coding/ACSL/bases/methods_bases.dart';
-import 'package:math_parser/math_parser.dart';
 
 // TODO: Order of operations, so it doesn't need parantheses
 // TODO: support | and &
