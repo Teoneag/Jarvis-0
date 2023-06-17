@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:jarvis_0/utils/utils.dart';
+import '/utils/utils.dart';
 import '/superbet/firestore_methods.dart';
 import '/superbet/contract_model.dart';
 

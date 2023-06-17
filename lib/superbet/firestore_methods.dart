@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '/superbet/contract_model.dart';
-import '../utils/utils.dart';
+import '/utils/utils.dart';
 
 const contractsS = 'contracts';
 

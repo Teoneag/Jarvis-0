@@ -48,6 +48,12 @@ class HomePage extends StatelessWidget {
               },
               child: const Text('Coding'),
             ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pushNamed(Routes.todoScreen);
+              },
+              child: const Text('Todo'),
+            ),
           ],
         ),
       ),

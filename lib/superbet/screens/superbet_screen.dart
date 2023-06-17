@@ -24,6 +24,12 @@ class SuperbetScreen extends StatelessWidget {
               },
               child: const Text('Contracts with people'),
             ),
+            // TextButton(
+            //   onPressed: () {
+            //     Navigator.of(context).pushNamed(Routes.superbetAuto);
+            //   },
+            //   child: const Text('Superbet automation'),
+            // ),
           ],
         ),
       ),

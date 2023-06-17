@@ -79,7 +79,7 @@ class Contract {
   }
 
   static Contract fromSnap(DocumentSnapshot snap) {
-    var data = snap.data() as Map<String, dynamic>;
+    final data = snap.data() as Map<String, dynamic>;
     return Contract(
       name: data[nameS],
       startDate: data[startDateS],
