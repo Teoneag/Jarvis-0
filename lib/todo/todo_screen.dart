@@ -1,9 +1,10 @@
+import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import '/todo/firestore_methods.dart';
-import '/utils/utils.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '/todo/task_model.dart';
+import '/todo/firestore_methods.dart';
 
 class TodoScreen extends StatefulWidget {
   const TodoScreen({super.key});
@@ -12,24 +13,7 @@ class TodoScreen extends StatefulWidget {
   State<TodoScreen> createState() => _TodoScreenState();
 }
 
-/*
-TODO: add cache sistem
-have 2 map<string, task> saved locally, all the changes are done to it, 
-save a task locally, add it to a toupdate queue
-always check for data from firestore
-have everything saved with sharedpreferences 
-Categories
-
-
-
-Subtasks
-Time
-Priority
-*/
-
 class _TodoScreenState extends State<TodoScreen> {
-  final TextEditingController _titleC = TextEditingController();
-
   Future<void> _displayDialog() async {
     return showDialog(
       context: context,
@@ -63,13 +47,51 @@ class _TodoScreenState extends State<TodoScreen> {
     );
   }
 
-  Future _addTask(String title) async {
-    await FirestoreMethdods.addTask(Task(title: title));
+  final TextEditingController _titleC = TextEditingController();
+  final Map<String, Task> _tasks = {};
+
+  void _addTask(String title) {
+    final task = Task(title: title);
+    _tasks[task.uid] = task;
     _titleC.clear();
+    setState(() {});
+    _saveTasks();
   }
 
-  Future _archiveTask(Task task) async {
-    await FirestoreMethdods.archiveTask(task.uid);
+  void _archiveTask(Task task) {
+    task.dispose();
+    _tasks.remove(task.uid);
+    setState(() {});
+    _saveTasks();
+  }
+
+  Future _saveTasks() async {
+    final prefs = await SharedPreferences.getInstance();
+    final taskMap = _tasks.map((key, value) => MapEntry(key, value.toJson()));
+    await prefs.setString(tasksS, json.encode(taskMap));
+  }
+
+  Future _loadTasks() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonString = prefs.getString(tasksS);
+      if (jsonString != null) {
+        final taskMap = json.decode(jsonString);
+        _tasks.clear();
+        taskMap.forEach((key, value) {
+          _tasks[key] = Task.fromJson(key, value);
+        });
+        setState(() {});
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTasks();
   }
 
   @override
@@ -82,30 +104,26 @@ class _TodoScreenState extends State<TodoScreen> {
         autofocus: true,
         child: Scaffold(
           appBar: AppBar(title: const Text('Todo')),
-          body: StreamBuilder(
-            stream: FirebaseFirestore.instance.collection(tasksS).snapshots(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return loadingCenter();
-              }
-              return ListView.builder(
-                itemCount: snapshot.data!.docs.length,
-                itemBuilder: (context, index) {
-                  final task = Task.fromSnap(snapshot.data!.docs[index]);
-                  return ListTile(
-                    key: ValueKey(task),
-                    title: Text(task.title),
-                    trailing: Padding(
-                      padding: const EdgeInsets.only(right: 10),
-                      child: task.isLoading
-                          ? const CircularProgressIndicator()
-                          : IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.red),
-                              onPressed: () => _archiveTask(task),
-                            ),
-                    ),
-                  );
-                },
+          body: ListView.builder(
+            itemCount: _tasks.length,
+            itemBuilder: (context, index) {
+              final task = _tasks.values.elementAt(index);
+              return ListTile(
+                key: ValueKey(task.uid),
+                title: TextField(
+                  controller: task.textC,
+                  onChanged: (value) {
+                    task.title = value;
+                    _saveTasks();
+                  },
+                ),
+                trailing: Padding(
+                  padding: const EdgeInsets.only(right: 10),
+                  child: IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: () => _archiveTask(task),
+                  ),
+                ),
               );
             },
           ),

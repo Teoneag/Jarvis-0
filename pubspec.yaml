@@ -41,6 +41,7 @@ dependencies:
   cloud_firestore: ^4.8.0
   intl: ^0.18.1
   webview_flutter: ^4.2.2
+  shared_preferences: ^2.1.2
   
 dev_dependencies:
   flutter_test:
