@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '/todo/firestore_methods.dart';
+import '/utils/utils.dart';
 import '/todo/task_model.dart';
 
 class TodoScreen extends StatefulWidget {
@@ -10,7 +13,14 @@ class TodoScreen extends StatefulWidget {
 }
 
 /*
+TODO: add cache sistem
+have 2 map<string, task> saved locally, all the changes are done to it, 
+save a task locally, add it to a toupdate queue
+always check for data from firestore
+have everything saved with sharedpreferences 
 Categories
+
+
 
 Subtasks
 Time
@@ -18,12 +28,6 @@ Priority
 */
 
 class _TodoScreenState extends State<TodoScreen> {
-  final List<Task> _tasks = [
-    Task(title: 'Glases'),
-    Task(title: 'Math'),
-    Task(title: 'Info'),
-    Task(title: 'Money'),
-  ];
   final TextEditingController _titleC = TextEditingController();
 
   Future<void> _displayDialog() async {
@@ -59,17 +63,13 @@ class _TodoScreenState extends State<TodoScreen> {
     );
   }
 
-  void _addTask(String title) {
-    setState(() {
-      _tasks.add(Task(title: title));
-    });
+  Future _addTask(String title) async {
+    await FirestoreMethdods.addTask(Task(title: title));
     _titleC.clear();
   }
 
-  void _deleteTask(int index) {
-    setState(() {
-      _tasks.removeAt(index);
-    });
+  Future _archiveTask(Task task) async {
+    await FirestoreMethdods.archiveTask(task.uid);
   }
 
   @override
@@ -82,25 +82,32 @@ class _TodoScreenState extends State<TodoScreen> {
         autofocus: true,
         child: Scaffold(
           appBar: AppBar(title: const Text('Todo')),
-          body: ReorderableListView.builder(
-            onReorder: (oldIndex, newIndex) {
-              setState(() {
-                final item = _tasks.removeAt(oldIndex);
-                _tasks.insert(newIndex, item);
-              });
+          body: StreamBuilder(
+            stream: FirebaseFirestore.instance.collection(tasksS).snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return loadingCenter();
+              }
+              return ListView.builder(
+                itemCount: snapshot.data!.docs.length,
+                itemBuilder: (context, index) {
+                  final task = Task.fromSnap(snapshot.data!.docs[index]);
+                  return ListTile(
+                    key: ValueKey(task),
+                    title: Text(task.title),
+                    trailing: Padding(
+                      padding: const EdgeInsets.only(right: 10),
+                      child: task.isLoading
+                          ? const CircularProgressIndicator()
+                          : IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              onPressed: () => _archiveTask(task),
+                            ),
+                    ),
+                  );
+                },
+              );
             },
-            itemCount: _tasks.length,
-            itemBuilder: (context, index) => ListTile(
-              key: ValueKey(_tasks[index]),
-              title: Text(_tasks[index].title),
-              trailing: Padding(
-                padding: const EdgeInsets.only(right: 10),
-                child: IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
-                  onPressed: () => _deleteTask(index),
-                ),
-              ),
-            ),
           ),
           floatingActionButton: FloatingActionButton(
             onPressed: _displayDialog,
