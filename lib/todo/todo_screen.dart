@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '/todo/task_model.dart';
 import '/todo/firestore_methods.dart';
@@ -49,26 +50,51 @@ class _TodoScreenState extends State<TodoScreen> {
 
   final TextEditingController _titleC = TextEditingController();
   final Map<String, Task> _tasks = {};
+  final _prefs = SharedPreferences.getInstance();
+  bool _isSyncing = false;
 
-  void _addTask(String title) {
-    final task = Task(title: title);
-    _tasks[task.uid] = task;
-    _titleC.clear();
-    setState(() {});
-    _saveTasks();
-  }
-
-  void _archiveTask(Task task) {
-    task.dispose();
-    _tasks.remove(task.uid);
-    setState(() {});
-    _saveTasks();
-  }
-
-  Future _saveTasks() async {
-    final prefs = await SharedPreferences.getInstance();
+  Future _saveTasksLocally() async {
+    final prefs = await _prefs;
     final taskMap = _tasks.map((key, value) => MapEntry(key, value.toJson()));
     await prefs.setString(tasksS, json.encode(taskMap));
+  }
+
+  Future _syncTasks() async {
+    try {
+      setState(() {
+        _isSyncing = true;
+      });
+      final prefs = await _prefs;
+      final taskMap = json.decode(prefs.getString(tasksS)!);
+      final querySnap =
+          await FirebaseFirestore.instance.collection(tasksS).get();
+      final docs = querySnap.docs;
+      _tasks.clear();
+      taskMap.forEach((uid, value) {
+        final taskFirestore =
+            Task.fromSnap(docs.firstWhere((element) => element.id == uid));
+        final taskPrefs = Task.fromJson(uid, value);
+        if (taskFirestore.lastModified.isAfter(taskPrefs.lastModified)) {
+          _tasks[uid] = taskFirestore;
+        } else {
+          _tasks[uid] = taskPrefs;
+          FirestoreMethdods.addOrModifyTask(taskPrefs);
+        }
+      });
+      for (var doc in docs) {
+        if (_tasks.containsKey(doc.id)) {
+          continue;
+        }
+        _tasks[doc.id] = Task.fromSnap(doc);
+      }
+      setState(() {});
+      await _saveTasksLocally();
+      setState(() {
+        _isSyncing = false;
+      });
+    } catch (e) {
+      print(e);
+    }
   }
 
   Future _loadTasks() async {
@@ -88,10 +114,35 @@ class _TodoScreenState extends State<TodoScreen> {
     }
   }
 
+  void _addTask(String title) {
+    final task = Task(title: title);
+    _tasks[task.uid] = task;
+    _titleC.clear();
+    setState(() {});
+    _saveTasksLocally();
+    FirestoreMethdods.addOrModifyTask(task);
+  }
+
+  void _archiveTask(Task task) {
+    task.dispose();
+    _tasks.remove(task.uid);
+    setState(() {});
+    _saveTasksLocally();
+    FirestoreMethdods.archiveTask(task.uid);
+  }
+
+  void _pressedSync() {
+    if (_isSyncing) {
+      return;
+    }
+    _syncTasks();
+  }
+
   @override
   void initState() {
     super.initState();
     _loadTasks();
+    _syncTasks();
   }
 
   @override
@@ -103,7 +154,20 @@ class _TodoScreenState extends State<TodoScreen> {
       child: Focus(
         autofocus: true,
         child: Scaffold(
-          appBar: AppBar(title: const Text('Todo')),
+          appBar: AppBar(
+            title: const Text('Todo'),
+            actions: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: IconButton(
+                  icon: _isSyncing
+                      ? const CircularProgressIndicator()
+                      : const Icon(Icons.sync),
+                  onPressed: _pressedSync,
+                ),
+              ),
+            ],
+          ),
           body: ListView.builder(
             itemCount: _tasks.length,
             itemBuilder: (context, index) {
@@ -114,7 +178,9 @@ class _TodoScreenState extends State<TodoScreen> {
                   controller: task.textC,
                   onChanged: (value) {
                     task.title = value;
-                    _saveTasks();
+                    task.lastModified = DateTime.now();
+                    _saveTasksLocally();
+                    FirestoreMethdods.addOrModifyTask(task);
                   },
                 ),
                 trailing: Padding(
