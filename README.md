@@ -3,12 +3,17 @@
 A new Flutter project.
 
 ## TODO: 
-
-### Find the best way to sync with firestore
-- make a toUpdate queue
-- always check for data from firestore
+- add time
+- add priority
+- add description
 ### Add
 - Categories
 - Subtasks
 - Time
 - Priority
+- Functions so i don't need whatsapp todo, info, drowssap
+- text for when it's empty
+- add undo button
+- add animations
+- save done, archived tasks locally
+### Firestore back up

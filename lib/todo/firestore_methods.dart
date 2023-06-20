@@ -3,7 +3,8 @@ import '/todo/task_model.dart';
 import '/utils/utils.dart';
 
 const tasksS = 'tasks';
-const tasksArchivedS = 'tasksArchivedS';
+const tasksArchivedS = 'tasksArchived';
+const tasksDoneS = 'tasksDone';
 
 class FirestoreMethdods {
   static final _firestore = FirebaseFirestore.instance;
@@ -22,6 +23,18 @@ class FirestoreMethdods {
     try {
       final docSnap = await _firestore.collection(tasksS).doc(uid).get();
       await _firestore.collection(tasksArchivedS).doc(uid).set(docSnap.data()!);
+      await _firestore.collection(tasksS).doc(uid).delete();
+      return successS;
+    } catch (e) {
+      print(e);
+      return '$e';
+    }
+  }
+
+  static Future<String> markDoneTask(String uid) async {
+    try {
+      final docSnap = await _firestore.collection(tasksS).doc(uid).get();
+      await _firestore.collection(tasksDoneS).doc(uid).set(docSnap.data()!);
       await _firestore.collection(tasksS).doc(uid).delete();
       return successS;
     } catch (e) {

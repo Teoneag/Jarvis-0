@@ -65,22 +65,25 @@ class _TodoScreenState extends State<TodoScreen> {
         _isSyncing = true;
       });
       final prefs = await _prefs;
-      final taskMap = json.decode(prefs.getString(tasksS)!);
+      final jsonString = prefs.getString(tasksS);
       final querySnap =
           await FirebaseFirestore.instance.collection(tasksS).get();
       final docs = querySnap.docs;
       _tasks.clear();
-      taskMap.forEach((uid, value) {
-        final taskFirestore =
-            Task.fromSnap(docs.firstWhere((element) => element.id == uid));
-        final taskPrefs = Task.fromJson(uid, value);
-        if (taskFirestore.lastModified.isAfter(taskPrefs.lastModified)) {
-          _tasks[uid] = taskFirestore;
-        } else {
-          _tasks[uid] = taskPrefs;
-          FirestoreMethdods.addOrModifyTask(taskPrefs);
-        }
-      });
+      if (jsonString != null) {
+        final taskMap = json.decode(jsonString);
+        taskMap.forEach((uid, value) {
+          final taskFirestore =
+              Task.fromSnap(docs.firstWhere((element) => element.id == uid));
+          final taskPrefs = Task.fromJson(uid, value);
+          if (taskFirestore.lastModified.isAfter(taskPrefs.lastModified)) {
+            _tasks[uid] = taskFirestore;
+          } else {
+            _tasks[uid] = taskPrefs;
+            FirestoreMethdods.addOrModifyTask(taskPrefs);
+          }
+        });
+      }
       for (var doc in docs) {
         if (_tasks.containsKey(doc.id)) {
           continue;
@@ -101,14 +104,12 @@ class _TodoScreenState extends State<TodoScreen> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final jsonString = prefs.getString(tasksS);
-      if (jsonString != null) {
-        final taskMap = json.decode(jsonString);
-        _tasks.clear();
-        taskMap.forEach((key, value) {
-          _tasks[key] = Task.fromJson(key, value);
-        });
-        setState(() {});
-      }
+      final taskMap = json.decode(jsonString!);
+      _tasks.clear();
+      taskMap.forEach((key, value) {
+        _tasks[key] = Task.fromJson(key, value);
+      });
+      setState(() {});
     } catch (e) {
       print(e);
     }
@@ -129,6 +130,14 @@ class _TodoScreenState extends State<TodoScreen> {
     setState(() {});
     _saveTasksLocally();
     FirestoreMethdods.archiveTask(task.uid);
+  }
+
+  void _markDoneTask(Task task) {
+    task.dispose();
+    _tasks.remove(task.uid);
+    setState(() {});
+    _saveTasksLocally();
+    FirestoreMethdods.markDoneTask(task.uid);
   }
 
   void _pressedSync() {
@@ -158,7 +167,7 @@ class _TodoScreenState extends State<TodoScreen> {
             title: const Text('Todo'),
             actions: [
               Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.only(right: 20),
                 child: IconButton(
                   icon: _isSyncing
                       ? const CircularProgressIndicator()
@@ -173,15 +182,26 @@ class _TodoScreenState extends State<TodoScreen> {
             itemBuilder: (context, index) {
               final task = _tasks.values.elementAt(index);
               return ListTile(
-                key: ValueKey(task.uid),
-                title: TextField(
-                  controller: task.textC,
-                  onChanged: (value) {
-                    task.title = value;
-                    task.lastModified = DateTime.now();
-                    _saveTasksLocally();
-                    FirestoreMethdods.addOrModifyTask(task);
-                  },
+                // key: ValueKey(task.uid), // only for reordering (not doing now)
+                leading: IconButton(
+                  icon: const Icon(Icons.check_box_outline_blank),
+                  onPressed: () => _markDoneTask(task),
+                ),
+                title: Column(
+                  children: [
+                    IntrinsicWidth(
+                      child: TextField(
+                        controller: task.textC,
+                        decoration: const InputDecoration(isDense: true),
+                        onChanged: (value) {
+                          task.title = value;
+                          task.lastModified = DateTime.now();
+                          _saveTasksLocally();
+                          FirestoreMethdods.addOrModifyTask(task);
+                        },
+                      ),
+                    ),
+                  ],
                 ),
                 trailing: Padding(
                   padding: const EdgeInsets.only(right: 10),

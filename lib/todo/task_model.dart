@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 const titleS = 'title';
-const lastModifiedS = 'lastModifiedS';
+const lastModifiedS = 'lastModified';
 
 class Task {
   String uid;
