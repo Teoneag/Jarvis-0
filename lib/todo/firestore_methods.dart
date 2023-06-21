@@ -45,6 +45,7 @@ class FirestoreMethdods {
 
   static Future<Task> getTask(String uid) async {
     try {
+      print('Getting task');
       final docSnap = await _firestore.collection(tasksS).doc(uid).get();
       return Task.fromSnap(docSnap);
     } catch (e) {

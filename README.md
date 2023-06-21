@@ -4,6 +4,10 @@ A new Flutter project.
 
 ## TODO: 
 - add time
+    if today: show only hour
+    if this month: show day
+    if this year: show day, month (3 letters)
+    show day, month(3 letters), year (2 digits)
 - add priority
 - add description
 ### Add

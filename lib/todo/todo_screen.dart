@@ -48,6 +48,40 @@ class _TodoScreenState extends State<TodoScreen> {
     );
   }
 
+  Future<void> _selectDate(BuildContext context, Task task) async {
+    final datePicked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2025),
+    );
+
+    if (datePicked != null) {
+      setState(() {
+        task.dueDate = datePicked;
+      });
+    }
+  }
+
+  Future<void> _selectTime(BuildContext context, Task task) async {
+    final TimeOfDay? timePicked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+    if (timePicked != null) {
+      DateTime? dueDate = task.dueDate;
+      dueDate ??= DateTime.now();
+      task.dueDate = DateTime(
+        dueDate.year,
+        dueDate.month,
+        dueDate.day,
+        timePicked.hour,
+        timePicked.minute,
+      );
+      setState(() {});
+    }
+  }
+
   final TextEditingController _titleC = TextEditingController();
   final Map<String, Task> _tasks = {};
   final _prefs = SharedPreferences.getInstance();
@@ -104,6 +138,7 @@ class _TodoScreenState extends State<TodoScreen> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final jsonString = prefs.getString(tasksS);
+      print(jsonString);
       final taskMap = json.decode(jsonString!);
       _tasks.clear();
       taskMap.forEach((key, value) {
@@ -201,6 +236,19 @@ class _TodoScreenState extends State<TodoScreen> {
                         },
                       ),
                     ),
+                  ],
+                ),
+                subtitle: Row(
+                  children: [
+                    IconButton(
+                      onPressed: () => _selectDate(context, task),
+                      icon: const Icon(Icons.calendar_today),
+                    ),
+                    IconButton(
+                      onPressed: () => _selectTime(context, task),
+                      icon: const Icon(Icons.access_time),
+                    ),
+                    Text('${task.dueDate ?? 0}'),
                   ],
                 ),
                 trailing: Padding(
