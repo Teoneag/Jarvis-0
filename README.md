@@ -4,6 +4,7 @@ A new Flutter project.
 
 ## TODO: 
 - add time
+https://pub.dev/packages/syncfusion_flutter_datepicker#installation
     if today: show only hour
     if this month: show day
     if this year: show day, month (3 letters)

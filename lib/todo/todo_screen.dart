@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import '/todo/task_model.dart';
 import '/todo/firestore_methods.dart';
 
@@ -46,40 +48,6 @@ class _TodoScreenState extends State<TodoScreen> {
         ],
       ),
     );
-  }
-
-  Future<void> _selectDate(BuildContext context, Task task) async {
-    final datePicked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2025),
-    );
-
-    if (datePicked != null) {
-      setState(() {
-        task.dueDate = datePicked;
-      });
-    }
-  }
-
-  Future<void> _selectTime(BuildContext context, Task task) async {
-    final TimeOfDay? timePicked = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
-    );
-    if (timePicked != null) {
-      DateTime? dueDate = task.dueDate;
-      dueDate ??= DateTime.now();
-      task.dueDate = DateTime(
-        dueDate.year,
-        dueDate.month,
-        dueDate.day,
-        timePicked.hour,
-        timePicked.minute,
-      );
-      setState(() {});
-    }
   }
 
   final TextEditingController _titleC = TextEditingController();
@@ -238,17 +206,39 @@ class _TodoScreenState extends State<TodoScreen> {
                     ),
                   ],
                 ),
-                subtitle: Row(
+                subtitle: Column(
                   children: [
-                    IconButton(
-                      onPressed: () => _selectDate(context, task),
-                      icon: const Icon(Icons.calendar_today),
+                    IntrinsicWidth(
+                      child: TextField(
+                        controller: task.dateC,
+                        onTap: () {
+                          task.isDateVisible = true;
+                          setState(() {});
+                        },
+                        onSubmitted: (value) {
+                          task.isDateVisible = false;
+                          setState(() {});
+                        },
+                        decoration:
+                            const InputDecoration(border: InputBorder.none),
+                      ),
                     ),
-                    IconButton(
-                      onPressed: () => _selectTime(context, task),
-                      icon: const Icon(Icons.access_time),
+                    Visibility(
+                      visible: task.isDateVisible,
+                      child: SfDateRangePicker(
+                        onSelectionChanged: (value) {
+                          task.dueDate = value.value;
+                          task.dateC.text =
+                              DateFormat('d MMM').format(value.value!);
+                          task.lastModified = DateTime.now();
+                          _saveTasksLocally();
+                          FirestoreMethdods.addOrModifyTask(task);
+                          task.isDateVisible = false;
+                          setState(() {});
+                        },
+                        initialSelectedDate: task.dueDate,
+                      ),
                     ),
-                    Text('${task.dueDate ?? 0}'),
                   ],
                 ),
                 trailing: Padding(

@@ -11,7 +11,8 @@ class Task {
   DateTime lastModified;
   String title;
   final textC = TextEditingController();
-  // final dateC = TextEditingController();
+  final dateC = TextEditingController();
+  bool isDateVisible = false;
   // final timeC = TextEditingController();
 
   DateTime? dueDate;
@@ -49,7 +50,7 @@ class Task {
 
   void dispose() {
     textC.dispose();
-    // dateC.dispose();
+    dateC.dispose();
     // timeC.dispose();
   }
 }
