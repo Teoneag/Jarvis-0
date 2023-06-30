@@ -10,17 +10,16 @@ class Task {
   String uid;
   DateTime lastModified;
   String title;
-  final textC = TextEditingController();
+  final titleC = TextEditingController();
+  DateTime? dueDate;
   final dateC = TextEditingController();
   bool isDateVisible = false;
   // final timeC = TextEditingController();
 
-  DateTime? dueDate;
-
   Task({required this.title, String? uid, DateTime? lastModified, this.dueDate})
       : uid = uid ?? const Uuid().v1(),
         lastModified = lastModified ?? DateTime.now() {
-    textC.text = title;
+    titleC.text = title;
   }
 
   factory Task.fromSnap(DocumentSnapshot snap) {
@@ -49,7 +48,7 @@ class Task {
       };
 
   void dispose() {
-    textC.dispose();
+    titleC.dispose();
     dateC.dispose();
     // timeC.dispose();
   }

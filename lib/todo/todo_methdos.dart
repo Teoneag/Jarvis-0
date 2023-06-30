@@ -1,11 +1,12 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'firestore_methods.dart';
 import '/todo/task_model.dart';
 
-class TodoMethods {
+class TodoM {
   static final _prefs = SharedPreferences.getInstance();
   static final _firestore = FirebaseFirestore.instance;
 
@@ -63,6 +64,52 @@ class TodoMethods {
       isSyncing.value = false;
     });
   }
+
+  static void addTask(tasks, titleC, setState) {
+    final task = Task(title: titleC.text);
+    tasks[task.uid] = task;
+    titleC.clear();
+    setState(() {});
+    _saveTasksLocally(tasks);
+    FirestoreMethdods.addOrModifyTask(task);
+  }
+
+  static void archiveTask(task, tasks, setState) {
+    task.dispose();
+    tasks.remove(task.uid);
+    setState(() {});
+    _saveTasksLocally(tasks);
+    FirestoreMethdods.archiveTask(task.uid);
+  }
+
+  static void markDoneTask(task, tasks, setState) {
+    task.dispose();
+    tasks.remove(task.uid);
+    setState(() {});
+    _saveTasksLocally(tasks);
+    FirestoreMethdods.markDoneTask(task.uid);
+  }
+
+  static void modifyTitle(title, task, tasks, setState) {
+    task.title = title;
+    task.lastModified = DateTime.now();
+    setState(() {});
+    _saveTasksLocally(tasks);
+    FirestoreMethdods.addOrModifyTask(task);
+  }
+
+  // modifyDateFromText
+  // modifyDateFromDate
+  // modifyDateFromTime
+  // static void modifyDate(date, task, tasks, setState) {
+  //   task.dueDate = date.value;
+  //   task.dateC.text = DateFormat('d MMM').format(date.value!);
+  //   task.lastModified = DateTime.now();
+  //   task.isDateVisible = false;
+  //   setState(() {});
+  //   _saveTasksLocally(tasks);
+  //   FirestoreMethdods.addOrModifyTask(task);
+  // }
 
   static Future _loadTasks(tasks) async {
     try {
@@ -130,38 +177,5 @@ class TodoMethods {
     } catch (e) {
       print(e);
     }
-  }
-
-  static void addTask(tasks, titleC, setState) {
-    final task = Task(title: titleC.text);
-    tasks[task.uid] = task;
-    titleC.clear();
-    setState(() {});
-    _saveTasksLocally(tasks);
-    FirestoreMethdods.addOrModifyTask(task);
-  }
-
-  static void archiveTask(task, tasks, setState) {
-    task.dispose();
-    tasks.remove(task.uid);
-    setState(() {});
-    _saveTasksLocally(tasks);
-    FirestoreMethdods.archiveTask(task.uid);
-  }
-
-  static void markDoneTask(task, tasks, setState) {
-    task.dispose();
-    tasks.remove(task.uid);
-    setState(() {});
-    _saveTasksLocally(tasks);
-    FirestoreMethdods.markDoneTask(task.uid);
-  }
-
-  static void modifyTitle(title, task, tasks, setState) {
-    task.title = title;
-    task.lastModified = DateTime.now();
-    setState(() {});
-    _saveTasksLocally(tasks);
-    FirestoreMethdods.addOrModifyTask(task);
   }
 }

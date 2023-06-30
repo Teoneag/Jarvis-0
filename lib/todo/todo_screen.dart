@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_time_picker_spinner/flutter_time_picker_spinner.dart';
+import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import '/todo/todo_methdos.dart';
 import '/utils/utils.dart';
 import '/todo/task_model.dart';
@@ -20,13 +22,13 @@ class _TodoScreenState extends State<TodoScreen> {
     if (_isSyncing.value) {
       return;
     }
-    TodoMethods.syncTasks(_tasks, setState, _isSyncing);
+    TodoM.syncTasks(_tasks, setState, _isSyncing);
   }
 
   @override
   void initState() {
     super.initState();
-    TodoMethods.loadSyncTasks(_tasks, setState, _isSyncing);
+    TodoM.loadSyncTasks(_tasks, setState, _isSyncing);
   }
 
   @override
@@ -34,7 +36,7 @@ class _TodoScreenState extends State<TodoScreen> {
     return CallbackShortcuts(
       bindings: {
         const SingleActivator(LogicalKeyboardKey.keyQ): () =>
-            TodoMethods.displayDialog(_tasks, _titleC, context, setState),
+            TodoM.displayDialog(_tasks, _titleC, context, setState),
       },
       child: Focus(
         autofocus: true,
@@ -57,74 +59,104 @@ class _TodoScreenState extends State<TodoScreen> {
             itemCount: _tasks.length,
             itemBuilder: (context, index) {
               final task = _tasks.values.elementAt(index);
-              return ListTile(
-                // key: ValueKey(task.uid), // only for reordering (not doing now)
-                leading: IconButton(
-                  icon: const Icon(Icons.check_box_outline_blank),
-                  onPressed: () =>
-                      TodoMethods.markDoneTask(task, _tasks, setState),
-                ),
-                title: Column(
-                  children: [
-                    IntrinsicWidth(
-                      child: TextField(
-                        controller: task.textC,
-                        decoration: const InputDecoration(isDense: true),
-                        onChanged: (title) => TodoMethods.modifyTitle(
-                            title, task, _tasks, setState),
+              return Column(
+                children: [
+                  ListTile(
+                    // key: ValueKey(task.uid), // only for reordering (not doing now)
+                    leading: IconButton(
+                      icon: const Icon(Icons.check_box_outline_blank),
+                      onPressed: () =>
+                          TodoM.markDoneTask(task, _tasks, setState),
+                    ),
+                    title: TextField(
+                      controller: task.titleC,
+                      decoration: const InputDecoration(
+                          isDense: true, border: InputBorder.none),
+                      onChanged: (title) =>
+                          TodoM.modifyTitle(title, task, _tasks, setState),
+                    ),
+                    subtitle: Column(
+                      children: [
+                        IntrinsicWidth(
+                          child: TextField(
+                            controller: task.dateC,
+                            onTap: () {
+                              task.isDateVisible = true;
+                              setState(() {});
+                            },
+                            onSubmitted: (value) {
+                              task.isDateVisible = false;
+                              setState(() {});
+                            },
+                            decoration: const InputDecoration(
+                              hintText: 'Date',
+                              isDense: true,
+                              border: InputBorder.none,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    trailing: Padding(
+                      padding: const EdgeInsets.only(right: 10),
+                      child: IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                        onPressed: () =>
+                            TodoM.archiveTask(task, _tasks, setState),
                       ),
                     ),
-                  ],
-                ),
-                subtitle: Column(
-                  children: [
-                    IntrinsicWidth(
-                      child: TextField(
-                        controller: task.dateC,
-                        onTap: () {
-                          task.isDateVisible = true;
-                          setState(() {});
-                        },
-                        onSubmitted: (value) {
-                          task.isDateVisible = false;
-                          setState(() {});
-                        },
-                        // decoration:
-                        // const InputDecoration(border: InputBorder.none),
-                      ),
-                    ),
-                    // Visibility(
-                    //   visible: task.isDateVisible,
-                    //   child: SfDateRangePicker(
-                    //     onSelectionChanged: (value) {
-                    //       task.dueDate = value.value;
-                    //       task.dateC.text =
-                    //           DateFormat('d MMM').format(value.value!);
-                    //       task.lastModified = DateTime.now();
-                    //       _saveTasksLocally();
-                    //       FirestoreMethdods.addOrModifyTask(task);
-                    //       task.isDateVisible = false;
-                    //       setState(() {});
-                    //     },
-                    //     initialSelectedDate: task.dueDate,
-                    //   ),
-                    // ),
-                  ],
-                ),
-                trailing: Padding(
-                  padding: const EdgeInsets.only(right: 10),
-                  child: IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                    onPressed: () =>
-                        TodoMethods.archiveTask(task, _tasks, setState),
                   ),
-                ),
+                  Visibility(
+                    visible: task.isDateVisible,
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: SfDateRangePicker(
+                              // onSelectionChanged: (value) => TodoM.modifyDate(
+                              //     value, task, _tasks, setState),
+                              initialSelectedDate: task.dueDate,
+                            ),
+                          ),
+                          Column(
+                            children: [
+                              TimePickerSpinner(
+                                  // initialTime
+                                  // onTimeChange: (time) {},
+                                  ),
+                              Row(
+                                children: [
+                                  IconButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        task.isDateVisible = false;
+                                      });
+                                      FocusScope.of(context).unfocus();
+                                      SystemChannels.textInput
+                                          .invokeMethod('TextInput.hide');
+                                    },
+                                    icon: const Icon(Icons.close),
+                                  ),
+                                  IconButton(
+                                    onPressed: () {},
+                                    icon: const Icon(Icons.check),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               );
             },
           ),
           floatingActionButton: FloatingActionButton(
             onPressed: () =>
-                TodoMethods.displayDialog(_tasks, _titleC, context, setState),
+                TodoM.displayDialog(_tasks, _titleC, context, setState),
             child: const Icon(Icons.add),
           ),
         ),
