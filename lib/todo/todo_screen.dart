@@ -1,13 +1,8 @@
-import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:syncfusion_flutter_datepicker/datepicker.dart';
+import '/todo/todo_methdos.dart';
+import '/utils/utils.dart';
 import '/todo/task_model.dart';
-import '/todo/firestore_methods.dart';
 
 class TodoScreen extends StatefulWidget {
   const TodoScreen({super.key});
@@ -17,151 +12,29 @@ class TodoScreen extends StatefulWidget {
 }
 
 class _TodoScreenState extends State<TodoScreen> {
-  Future<void> _displayDialog() async {
-    return showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Add a task'),
-        content: TextField(
-          controller: _titleC,
-          decoration: const InputDecoration(hintText: 'Type your task'),
-          autofocus: true,
-          onSubmitted: (value) {
-            Navigator.of(context).pop();
-            _addTask(_titleC.text);
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              _addTask(_titleC.text);
-            },
-            child: const Text('Add'),
-          ),
-        ],
-      ),
-    );
-  }
-
   final TextEditingController _titleC = TextEditingController();
   final Map<String, Task> _tasks = {};
-  final _prefs = SharedPreferences.getInstance();
-  bool _isSyncing = false;
-
-  Future _saveTasksLocally() async {
-    final prefs = await _prefs;
-    final taskMap = _tasks.map((key, value) => MapEntry(key, value.toJson()));
-    await prefs.setString(tasksS, json.encode(taskMap));
-  }
-
-  Future _syncTasks() async {
-    try {
-      setState(() {
-        _isSyncing = true;
-      });
-      final prefs = await _prefs;
-      final jsonString = prefs.getString(tasksS);
-      final querySnap =
-          await FirebaseFirestore.instance.collection(tasksS).get();
-      final docs = querySnap.docs;
-      _tasks.clear();
-      if (jsonString != null) {
-        final taskMap = json.decode(jsonString);
-        taskMap.forEach((uid, value) {
-          final taskFirestore =
-              Task.fromSnap(docs.firstWhere((element) => element.id == uid));
-          final taskPrefs = Task.fromJson(uid, value);
-          if (taskFirestore.lastModified.isAfter(taskPrefs.lastModified)) {
-            _tasks[uid] = taskFirestore;
-          } else {
-            _tasks[uid] = taskPrefs;
-            FirestoreMethdods.addOrModifyTask(taskPrefs);
-          }
-        });
-      }
-      for (var doc in docs) {
-        if (_tasks.containsKey(doc.id)) {
-          continue;
-        }
-        _tasks[doc.id] = Task.fromSnap(doc);
-      }
-      setState(() {});
-      await _saveTasksLocally();
-      setState(() {
-        _isSyncing = false;
-      });
-    } catch (e) {
-      print(e);
-    }
-  }
-
-  Future _loadTasks() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final jsonString = prefs.getString(tasksS);
-      print(jsonString);
-      final taskMap = json.decode(jsonString!);
-      _tasks.clear();
-      taskMap.forEach((key, value) {
-        _tasks[key] = Task.fromJson(key, value);
-      });
-      setState(() {});
-    } catch (e) {
-      print(e);
-    }
-  }
-
-  void _addTask(String title) {
-    final task = Task(title: title);
-    _tasks[task.uid] = task;
-    _titleC.clear();
-    setState(() {});
-    _saveTasksLocally();
-    FirestoreMethdods.addOrModifyTask(task);
-  }
-
-  void _archiveTask(Task task) {
-    task.dispose();
-    _tasks.remove(task.uid);
-    setState(() {});
-    _saveTasksLocally();
-    FirestoreMethdods.archiveTask(task.uid);
-  }
-
-  void _markDoneTask(Task task) {
-    task.dispose();
-    _tasks.remove(task.uid);
-    setState(() {});
-    _saveTasksLocally();
-    FirestoreMethdods.markDoneTask(task.uid);
-  }
+  final BoolWrapper _isSyncing = BoolWrapper(false);
 
   void _pressedSync() {
-    if (_isSyncing) {
+    if (_isSyncing.value) {
       return;
     }
-    _syncTasks();
+    TodoMethods.syncTasks(_tasks, setState, _isSyncing);
   }
 
   @override
   void initState() {
     super.initState();
-    _loadTasks();
-    _syncTasks();
+    TodoMethods.loadSyncTasks(_tasks, setState, _isSyncing);
   }
 
   @override
   Widget build(BuildContext context) {
     return CallbackShortcuts(
       bindings: {
-        const SingleActivator(LogicalKeyboardKey.keyQ): _displayDialog,
+        const SingleActivator(LogicalKeyboardKey.keyQ): () =>
+            TodoMethods.displayDialog(_tasks, _titleC, context, setState),
       },
       child: Focus(
         autofocus: true,
@@ -171,12 +44,12 @@ class _TodoScreenState extends State<TodoScreen> {
             actions: [
               Padding(
                 padding: const EdgeInsets.only(right: 20),
-                child: IconButton(
-                  icon: _isSyncing
-                      ? const CircularProgressIndicator()
-                      : const Icon(Icons.sync),
-                  onPressed: _pressedSync,
-                ),
+                child: _isSyncing.value
+                    ? loadingCenter()
+                    : IconButton(
+                        icon: const Icon(Icons.sync),
+                        onPressed: _pressedSync,
+                      ),
               ),
             ],
           ),
@@ -188,7 +61,8 @@ class _TodoScreenState extends State<TodoScreen> {
                 // key: ValueKey(task.uid), // only for reordering (not doing now)
                 leading: IconButton(
                   icon: const Icon(Icons.check_box_outline_blank),
-                  onPressed: () => _markDoneTask(task),
+                  onPressed: () =>
+                      TodoMethods.markDoneTask(task, _tasks, setState),
                 ),
                 title: Column(
                   children: [
@@ -196,12 +70,8 @@ class _TodoScreenState extends State<TodoScreen> {
                       child: TextField(
                         controller: task.textC,
                         decoration: const InputDecoration(isDense: true),
-                        onChanged: (value) {
-                          task.title = value;
-                          task.lastModified = DateTime.now();
-                          _saveTasksLocally();
-                          FirestoreMethdods.addOrModifyTask(task);
-                        },
+                        onChanged: (title) => TodoMethods.modifyTitle(
+                            title, task, _tasks, setState),
                       ),
                     ),
                   ],
@@ -219,40 +89,42 @@ class _TodoScreenState extends State<TodoScreen> {
                           task.isDateVisible = false;
                           setState(() {});
                         },
-                        decoration:
-                            const InputDecoration(border: InputBorder.none),
+                        // decoration:
+                        // const InputDecoration(border: InputBorder.none),
                       ),
                     ),
-                    Visibility(
-                      visible: task.isDateVisible,
-                      child: SfDateRangePicker(
-                        onSelectionChanged: (value) {
-                          task.dueDate = value.value;
-                          task.dateC.text =
-                              DateFormat('d MMM').format(value.value!);
-                          task.lastModified = DateTime.now();
-                          _saveTasksLocally();
-                          FirestoreMethdods.addOrModifyTask(task);
-                          task.isDateVisible = false;
-                          setState(() {});
-                        },
-                        initialSelectedDate: task.dueDate,
-                      ),
-                    ),
+                    // Visibility(
+                    //   visible: task.isDateVisible,
+                    //   child: SfDateRangePicker(
+                    //     onSelectionChanged: (value) {
+                    //       task.dueDate = value.value;
+                    //       task.dateC.text =
+                    //           DateFormat('d MMM').format(value.value!);
+                    //       task.lastModified = DateTime.now();
+                    //       _saveTasksLocally();
+                    //       FirestoreMethdods.addOrModifyTask(task);
+                    //       task.isDateVisible = false;
+                    //       setState(() {});
+                    //     },
+                    //     initialSelectedDate: task.dueDate,
+                    //   ),
+                    // ),
                   ],
                 ),
                 trailing: Padding(
                   padding: const EdgeInsets.only(right: 10),
                   child: IconButton(
                     icon: const Icon(Icons.delete, color: Colors.red),
-                    onPressed: () => _archiveTask(task),
+                    onPressed: () =>
+                        TodoMethods.archiveTask(task, _tasks, setState),
                   ),
                 ),
               );
             },
           ),
           floatingActionButton: FloatingActionButton(
-            onPressed: _displayDialog,
+            onPressed: () =>
+                TodoMethods.displayDialog(_tasks, _titleC, context, setState),
             child: const Icon(Icons.add),
           ),
         ),

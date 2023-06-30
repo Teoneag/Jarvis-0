@@ -10,6 +10,7 @@ import '/superbet/screens/contracts_screen.dart';
 import '/coding/coding_screen.dart';
 import '/coding/ACSL/bases/bases.dart';
 import '/coding/ACSL/prefix_infix_postfix/prefix_infix_postfix.dart';
+import '/todo/todo_tag.dart';
 
 class Routes {
   static const String homeScreen = '/';
@@ -22,6 +23,7 @@ class Routes {
   static const String acslComputerNumberSystem = '/acslComputerNumberSystem';
   static const String acslPrefixPostfixInfix = '/acslPrefixPostfixInfix';
   static const String todoScreen = '/todoScreen';
+  static const String todoTagScreen = '/todoTagScreen';
 }
 
 final Map<String, WidgetBuilder> routes = {
@@ -34,6 +36,7 @@ final Map<String, WidgetBuilder> routes = {
   Routes.acslComputerNumberSystem: (context) => const Bases(),
   Routes.acslPrefixPostfixInfix: (context) => const PrefixInfixPostfix(),
   Routes.todoScreen: (context) => const TodoScreen(),
+  Routes.todoTagScreen: (context) => const TodoTagScreen(),
 };
 
 Route<dynamic> generateLocalRoutes(settings) {

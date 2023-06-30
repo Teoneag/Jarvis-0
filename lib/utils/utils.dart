@@ -33,3 +33,9 @@ calc(String equation) {
     return 0;
   }
 }
+
+class BoolWrapper {
+  bool value;
+
+  BoolWrapper(this.value);
+}

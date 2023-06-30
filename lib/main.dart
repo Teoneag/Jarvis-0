@@ -54,6 +54,12 @@ class HomePage extends StatelessWidget {
               },
               child: const Text('Todo'),
             ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pushNamed(Routes.todoTagScreen);
+              },
+              child: const Text('Todo tags'),
+            ),
           ],
         ),
       ),
