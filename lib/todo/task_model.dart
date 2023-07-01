@@ -14,7 +14,8 @@ class Task {
   DateTime? dueDate;
   final dateC = TextEditingController();
   bool isDateVisible = false;
-  // final timeC = TextEditingController();
+  DateTime? time;
+  DateTime? date;
 
   Task({required this.title, String? uid, DateTime? lastModified, this.dueDate})
       : uid = uid ?? const Uuid().v1(),
