@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '/todo/task_widget.dart';
-import '/todo/todo_methdos.dart';
-import '/utils/utils.dart';
+
 import '/todo/task_model.dart';
+import '/todo/task_widget.dart';
+import '/todo/todo_methods.dart';
+import '/utils/utils.dart';
 
 class TodoScreen extends StatefulWidget {
   const TodoScreen({super.key});
@@ -20,7 +21,7 @@ class _TodoScreenState extends State<TodoScreen> {
   @override
   void initState() {
     super.initState();
-    TodoM.loadSyncTasks(_tasks, setState, _isSyncing);
+    TodoMethods.loadSyncTasks(TaskSyncObject(setState, _isSyncing), _tasks);
   }
 
   @override
@@ -28,7 +29,8 @@ class _TodoScreenState extends State<TodoScreen> {
     return CallbackShortcuts(
       bindings: {
         const SingleActivator(LogicalKeyboardKey.keyQ): () =>
-            TodoM.displayDialog(_tasks, _titleC, context, setState, _isSyncing),
+            TodoMethods.displayDialog(
+                TaskSyncObject(setState, _isSyncing), _tasks, _titleC, context),
       },
       child: Focus(
         autofocus: true,
@@ -42,8 +44,8 @@ class _TodoScreenState extends State<TodoScreen> {
                     ? loadingCenter()
                     : IconButton(
                         icon: const Icon(Icons.sync),
-                        onPressed: () =>
-                            TodoM.syncTasks(_tasks, setState, _isSyncing),
+                        onPressed: () => TodoMethods.syncTasks(
+                            TaskSyncObject(setState, _isSyncing), _tasks),
                       ),
               ),
             ],
@@ -56,8 +58,8 @@ class _TodoScreenState extends State<TodoScreen> {
             },
           ),
           floatingActionButton: FloatingActionButton(
-            onPressed: () => TodoM.displayDialog(
-                _tasks, _titleC, context, setState, _isSyncing),
+            onPressed: () => TodoMethods.displayDialog(
+                TaskSyncObject(setState, _isSyncing), _tasks, _titleC, context),
             child: const Icon(Icons.add),
           ),
         ),
