@@ -1,67 +1,61 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:jarvis_0/utils/utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'firestore_methods.dart';
-import '/todo/task_model.dart';
 
-class TodoM {
+import '/todo/task_model.dart';
+import '../components/AddTaskDialog.dart';
+import 'firestore_methods.dart';
+
+class TaskSyncObject {
+  late StateSetter setState;
+  late BoolWrapper isSyncing;
+
+  TaskSyncObject(this.setState, this.isSyncing);
+}
+
+Future<void> reloadStateTask(
+    TaskSyncObject syncObject, Function runFunc) async {
+  syncObject.setState(() {
+    syncObject.isSyncing.value = true;
+  });
+  await runFunc();
+  syncObject.setState(() {
+    syncObject.isSyncing.value = false;
+  });
+}
+
+class TodoMethods {
   static final _prefs = SharedPreferences.getInstance();
   static final _firestore = FirebaseFirestore.instance;
 
   static Future displayDialog(
+    TaskSyncObject taskSyncObject,
     Map<String, Task> tasks,
     TextEditingController titleC,
     BuildContext context,
-    StateSetter setState,
-    BoolWrapper isSyncing,
   ) async {
     return showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Add a task'),
-        content: TextField(
-          controller: titleC,
-          decoration: const InputDecoration(hintText: 'Type your task'),
-          autofocus: true,
-          onSubmitted: (value) {
-            Navigator.of(context).pop();
-            addTask(tasks, titleC, setState, isSyncing);
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              addTask(tasks, titleC, setState, isSyncing);
-            },
-            child: const Text('Add'),
-          ),
-        ],
+      builder: (context) => AddTaskDialog(
+        titleC: titleC,
+        taskSyncObject: taskSyncObject,
+        tasks: tasks,
       ),
     );
   }
 
   static Future loadSyncTasks(
+    TaskSyncObject taskSyncObject,
     Map<String, Task> tasks,
-    StateSetter setState,
-    BoolWrapper isSyncing,
   ) async {
-    setState(() {
-      isSyncing.value = true;
-    });
-    await _loadTasks(tasks);
-    setState(() {});
-    await _syncTasks(tasks);
-    setState(() {
-      isSyncing.value = false;
+    await reloadStateTask(taskSyncObject, () async {
+      await _loadTasks(tasks);
+
+      taskSyncObject.setState(() {});
+      await _syncTasks(tasks);
     });
   }
 
@@ -84,100 +78,80 @@ class TodoM {
   */
 
   static Future syncTasks(
+    TaskSyncObject taskSyncObject,
     Map<String, Task> tasks,
-    StateSetter setState,
-    BoolWrapper isSyncing,
   ) async {
-    setState(() {
-      isSyncing.value = true;
-    });
-    await _syncTasks(tasks);
-    setState(() {
-      isSyncing.value = false;
+    await reloadStateTask(taskSyncObject, () async {
+      await _syncTasks(tasks);
     });
   }
 
   static void addTask(
+    TaskSyncObject taskSyncObject,
     Map<String, Task> tasks,
     TextEditingController titleC,
-    StateSetter setState,
-    BoolWrapper isSyncing,
   ) {
     try {
       final task = Task(title: titleC.text);
       tasks[task.uid] = task;
       titleC.clear();
-      _saveTask(tasks, task, setState, isSyncing);
+
+      _saveTask(tasks, task, taskSyncObject);
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
   }
 
   static void archiveTask(
+    TaskSyncObject taskSyncObject,
     Map<String, Task> tasks,
     Task task,
-    StateSetter setState,
-    BoolWrapper isSyncing,
   ) {
     try {
       task.dispose();
       tasks.remove(task.uid);
-      setState(() {
-        isSyncing.value = true;
-      });
-      _saveTasksLocally(tasks);
-      FirestoreMethdods.archiveTask(task.uid);
-      setState(() {
-        isSyncing.value = false;
-      });
+      reloadStateTask(taskSyncObject, () async {
+        _saveTasksLocally(tasks);
+        FirestoreMethdods.archiveTask(task.uid);
+      }).then((value) => null);
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
   }
 
   static void markDoneTask(
     Map<String, Task> tasks,
     Task task,
-    StateSetter setState,
-    BoolWrapper isSyncing,
+    TaskSyncObject taskSyncObject,
   ) {
     try {
       task.dispose();
       tasks.remove(task.uid);
-      setState(() {
-        isSyncing.value = true;
-      });
-      _saveTasksLocally(tasks);
-      FirestoreMethdods.markDoneTask(task.uid);
-      setState(() {
-        isSyncing.value = false;
+
+      reloadStateTask(taskSyncObject, () async {
+        _saveTasksLocally(tasks);
+        FirestoreMethdods.markDoneTask(task.uid);
       });
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
   }
 
-  static void modifyTitle(
-    String title,
-    Map<String, Task> tasks,
-    Task task,
-    StateSetter setState,
-    BoolWrapper isSyncing,
-  ) {
+  static void modifyTitle(String title, Map<String, Task> tasks, Task task,
+      TaskSyncObject taskSyncObject) {
     try {
       task.title = title;
       task.lastModified = DateTime.now();
-      _saveTask(tasks, task, setState, isSyncing);
+      _saveTask(tasks, task, taskSyncObject);
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
   }
 
   static Future modifyDate(
     String uid,
     Map<String, Task> tasks,
-    StateSetter setState,
-    BoolWrapper isSyncing,
+    TaskSyncObject taskSyncObject,
   ) async {
     try {
       Task task = tasks[uid]!;
@@ -196,25 +170,20 @@ class TodoM {
       task.lastModified = DateTime.now();
       tasks[uid] = task;
       task.isDateVisible = false;
-      _saveTask(tasks, task, setState, isSyncing);
+      _saveTask(tasks, task, taskSyncObject);
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
   }
 
   static Future _saveTask(
     Map<String, Task> tasks,
     Task task,
-    StateSetter setState,
-    BoolWrapper isSyncing,
+    TaskSyncObject taskSyncObject,
   ) async {
-    setState(() {
-      isSyncing.value = true;
-    });
-    await _saveTasksLocally(tasks);
-    await FirestoreMethdods.addOrModifyTask(task);
-    setState(() {
-      isSyncing.value = false;
+    await reloadStateTask(taskSyncObject, () async {
+      await _saveTasksLocally(tasks);
+      await FirestoreMethdods.addOrModifyTask(task);
     });
   }
 
@@ -228,7 +197,7 @@ class TodoM {
         tasks[key] = Task.fromJson(key, value);
       });
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
   }
 
@@ -238,7 +207,7 @@ class TodoM {
       final taskMap = tasks.map((key, value) => MapEntry(key, value.toJson()));
       await prefs.setString(tasksS, json.encode(taskMap));
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
   }
 
@@ -255,26 +224,8 @@ class TodoM {
       final jsonString = results[0].getString(tasksS);
       final docs = results[1].docs;
       tasks.clear();
-      if (jsonString != null) {
-        final taskMap = json.decode(jsonString);
-        for (var entry in taskMap.entries) {
-          final uid = entry.key;
-          final taskPrefs = Task.fromJson(uid, entry.value);
-          if (docs.contains(uid)) {
-            final taskFirestore =
-                Task.fromSnap(docs.firstWhere((element) => element.id == uid));
-            if (taskFirestore.lastModified.isAfter(taskPrefs.lastModified)) {
-              tasks[uid] = taskFirestore;
-              continue;
-            }
-          }
-          if (snapArchived.docs.contains(uid) || snapDone.docs.contains(uid)) {
-            continue;
-          }
-          tasks[uid] = taskPrefs;
-          FirestoreMethdods.addOrModifyTask(taskPrefs);
-        }
-      }
+
+      _parseTaskJson(jsonString, docs, tasks, snapArchived, snapDone);
       for (var doc in docs) {
         if (!tasks.containsKey(doc.id)) {
           tasks[doc.id] = Task.fromSnap(doc);
@@ -282,7 +233,39 @@ class TodoM {
       }
       await _saveTasksLocally(tasks);
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
+    }
+  }
+
+  static void _parseTaskJson(
+      jsonString, docs, Map<String, Task> tasks, snapArchived, snapDone) {
+    if (jsonString == null) return;
+
+    final taskMap = json.decode(jsonString);
+
+    for (var entry in taskMap.entries) {
+      final uid = entry.key;
+      final taskPrefs = Task.fromJson(uid, entry.value);
+
+      if (docs.contains(uid)) {
+        final taskFirestore =
+            Task.fromSnap(docs.firstWhere((element) => element.id == uid));
+        final bool isModified =
+            taskFirestore.lastModified.isAfter(taskPrefs.lastModified);
+
+        if (isModified) {
+          tasks[uid] = taskFirestore;
+          continue;
+        }
+      }
+
+      final bool isArchived = snapArchived.docs.contains(uid);
+      final bool isDone = snapDone.docs.contains(uid);
+      if (isArchived || isDone) {
+        continue;
+      }
+      tasks[uid] = taskPrefs;
+      FirestoreMethdods.addOrModifyTask(taskPrefs);
     }
   }
 }

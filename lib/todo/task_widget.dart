@@ -3,8 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_time_picker_spinner/flutter_time_picker_spinner.dart';
 import 'package:jarvis_0/utils/utils.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
+
 import 'task_model.dart';
-import 'todo_methdos.dart';
+import 'todo_methods.dart';
 
 class TaskWidget extends StatelessWidget {
   final Map<String, Task> tasks;
@@ -22,11 +23,10 @@ class TaskWidget extends StatelessWidget {
           // key: ValueKey(task.uid), // only for reordering (not doing now)
           leading: IconButton(
             icon: const Icon(Icons.check_box_outline_blank),
-            onPressed: () => TodoM.markDoneTask(
+            onPressed: () => TodoMethods.markDoneTask(
               tasks,
               task,
-              setState,
-              isSyncing,
+              TaskSyncObject(setState, isSyncing),
             ),
           ),
           title: TextField(
@@ -34,8 +34,8 @@ class TaskWidget extends StatelessWidget {
             decoration:
                 const InputDecoration(isDense: true, border: InputBorder.none),
             // change onChanged to onSubmitted
-            onChanged: (title) =>
-                TodoM.modifyTitle(title, tasks, task, setState, isSyncing),
+            onChanged: (title) => TodoMethods.modifyTitle(
+                title, tasks, task, TaskSyncObject(setState, isSyncing)),
           ),
           subtitle: Column(
             children: [
@@ -63,8 +63,8 @@ class TaskWidget extends StatelessWidget {
             padding: const EdgeInsets.only(right: 10),
             child: IconButton(
               icon: const Icon(Icons.delete, color: Colors.red),
-              onPressed: () =>
-                  TodoM.archiveTask(tasks, task, setState, isSyncing),
+              onPressed: () => TodoMethods.archiveTask(
+                  TaskSyncObject(setState, isSyncing), tasks, task),
             ),
           ),
         ),
@@ -114,8 +114,8 @@ class TaskWidget extends StatelessWidget {
                             FocusScope.of(context).unfocus();
                             SystemChannels.textInput
                                 .invokeMethod('TextInput.hide');
-                            TodoM.modifyDate(
-                                task.uid, tasks, setState, isSyncing);
+                            TodoMethods.modifyDate(task.uid, tasks,
+                                TaskSyncObject(setState, isSyncing));
                           },
                           icon: const Icon(Icons.check),
                         ),
