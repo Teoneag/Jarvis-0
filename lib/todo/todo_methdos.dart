@@ -65,6 +65,24 @@ class TodoM {
     });
   }
 
+  /*
+  Map<String, Task> tasks,
+    StateSetter setState,
+    BoolWrapper isSyncing,
+  ) async {
+    setState(() {
+      isSyncing.value = true;
+    });
+    try {
+      await // smth
+    } catch (e) {
+      print(e);
+    }
+    setState(() {
+      isSyncing.value = false;
+    });
+  */
+
   static Future syncTasks(
     Map<String, Task> tasks,
     StateSetter setState,
