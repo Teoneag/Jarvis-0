@@ -20,7 +20,7 @@ class _TodoScreenState extends State<TodoScreen> {
   @override
   void initState() {
     super.initState();
-    TodoM.loadSyncTasks(_tasks, setState, _isSyncing);
+    TodoM.loadSyncTasks(_tasks, SyncObj(setState, _isSyncing));
   }
 
   @override
@@ -28,7 +28,8 @@ class _TodoScreenState extends State<TodoScreen> {
     return CallbackShortcuts(
       bindings: {
         const SingleActivator(LogicalKeyboardKey.keyQ): () =>
-            TodoM.displayDialog(_tasks, _titleC, context, setState, _isSyncing),
+            TodoM.displayDialog(
+                _tasks, _titleC, context, SyncObj(setState, _isSyncing)),
       },
       child: Focus(
         autofocus: true,
@@ -42,8 +43,8 @@ class _TodoScreenState extends State<TodoScreen> {
                     ? loadingCenter()
                     : IconButton(
                         icon: const Icon(Icons.sync),
-                        onPressed: () =>
-                            TodoM.syncTasks(_tasks, setState, _isSyncing),
+                        onPressed: () => TodoM.syncTasks(
+                            _tasks, SyncObj(setState, _isSyncing)),
                       ),
               ),
             ],
@@ -57,7 +58,7 @@ class _TodoScreenState extends State<TodoScreen> {
           ),
           floatingActionButton: FloatingActionButton(
             onPressed: () => TodoM.displayDialog(
-                _tasks, _titleC, context, setState, _isSyncing),
+                _tasks, _titleC, context, SyncObj(setState, _isSyncing)),
             child: const Icon(Icons.add),
           ),
         ),

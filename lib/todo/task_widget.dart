@@ -22,20 +22,16 @@ class TaskWidget extends StatelessWidget {
           // key: ValueKey(task.uid), // only for reordering (not doing now)
           leading: IconButton(
             icon: const Icon(Icons.check_box_outline_blank),
-            onPressed: () => TodoM.markDoneTask(
-              tasks,
-              task,
-              setState,
-              isSyncing,
-            ),
+            onPressed: () => TodoM.doneTask(
+                TaskObj(tasks, task), SyncObj(setState, isSyncing)),
           ),
           title: TextField(
             controller: task.titleC,
             decoration:
                 const InputDecoration(isDense: true, border: InputBorder.none),
             // change onChanged to onSubmitted
-            onChanged: (title) =>
-                TodoM.modifyTitle(title, tasks, task, setState, isSyncing),
+            onChanged: (title) => TodoM.modifyTitle(
+                TaskObj(tasks, task), title, SyncObj(setState, isSyncing)),
           ),
           subtitle: Column(
             children: [
@@ -63,8 +59,8 @@ class TaskWidget extends StatelessWidget {
             padding: const EdgeInsets.only(right: 10),
             child: IconButton(
               icon: const Icon(Icons.delete, color: Colors.red),
-              onPressed: () =>
-                  TodoM.archiveTask(tasks, task, setState, isSyncing),
+              onPressed: () => TodoM.archiveTask(
+                  TaskObj(tasks, task), SyncObj(setState, isSyncing)),
             ),
           ),
         ),
@@ -115,7 +111,7 @@ class TaskWidget extends StatelessWidget {
                             SystemChannels.textInput
                                 .invokeMethod('TextInput.hide');
                             TodoM.modifyDate(
-                                task.uid, tasks, setState, isSyncing);
+                                task.uid, tasks, SyncObj(setState, isSyncing));
                           },
                           icon: const Icon(Icons.check),
                         ),

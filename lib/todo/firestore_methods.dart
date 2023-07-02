@@ -31,7 +31,7 @@ class FirestoreMethdods {
     }
   }
 
-  static Future<String> markDoneTask(String uid) async {
+  static Future<String> doneTask(String uid) async {
     try {
       final docSnap = await _firestore.collection(tasksS).doc(uid).get();
       await _firestore.collection(tasksDoneS).doc(uid).set(docSnap.data()!);
