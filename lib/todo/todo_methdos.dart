@@ -16,7 +16,7 @@ class TodoM {
     TextEditingController titleC,
     BuildContext context,
     SyncObj sO,
-  ) async {
+  ) {
     return showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -49,13 +49,13 @@ class TodoM {
     );
   }
 
-  static Future loadSyncTasks(Map<String, Task> tasks, SyncObj sO) async {
-    await syncFun(sO, () => _loadTasks(tasks));
-    await syncFun(sO, () => _syncTasks(tasks));
+  static void loadSyncTasks(Map<String, Task> tasks, SyncObj sO) {
+    syncFun(sO, () => _loadTasks(tasks));
+    syncFun(sO, () => _syncTasks(tasks));
   }
 
-  static Future syncTasks(Map<String, Task> tasks, SyncObj sO) async {
-    await syncFun(sO, () => _syncTasks(tasks));
+  static void syncTasks(Map<String, Task> tasks, SyncObj sO) {
+    syncFun(sO, () => _syncTasks(tasks));
   }
 
   static void addTask(
@@ -74,9 +74,9 @@ class TodoM {
     try {
       tO.task.dispose();
       tO.tasks.remove(tO.task.uid);
-      syncFun(sO, () async {
-        await _saveTasksLocally(tO.tasks);
-        await FirestoreMethdods.archiveTask(tO.task.uid);
+      syncFun(sO, () {
+        _saveTasksLocally(tO.tasks);
+        FirestoreMethdods.archiveTask(tO.task.uid);
       });
     } catch (e) {
       print(e);
@@ -87,9 +87,9 @@ class TodoM {
     try {
       tO.task.dispose();
       tO.tasks.remove(tO.task.uid);
-      syncFun(sO, () async {
-        await _saveTasksLocally(tO.tasks);
-        await FirestoreMethdods.doneTask(tO.task.uid);
+      syncFun(sO, () {
+        _saveTasksLocally(tO.tasks);
+        FirestoreMethdods.doneTask(tO.task.uid);
       });
     } catch (e) {
       print(e);
@@ -131,14 +131,14 @@ class TodoM {
     }
   }
 
-  static Future _saveTask(TaskObj tO, SyncObj sO) async {
-    await syncFun(sO, () async {
-      await _saveTasksLocally(tO.tasks);
-      await FirestoreMethdods.addOrModifyTask(tO.task);
+  static void _saveTask(TaskObj tO, SyncObj sO) {
+    syncFun(sO, () {
+      _saveTasksLocally(tO.tasks);
+      FirestoreMethdods.addOrModifyTask(tO.task);
     });
   }
 
-  static Future _loadTasks(Map<String, Task> tasks) async {
+  static Future<void> _loadTasks(Map<String, Task> tasks) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final jsonString = prefs.getString(tasksS);
@@ -152,7 +152,7 @@ class TodoM {
     }
   }
 
-  static Future _saveTasksLocally(Map<String, Task> tasks) async {
+  static Future<void> _saveTasksLocally(Map<String, Task> tasks) async {
     try {
       final prefs = await _prefs;
       final taskMap = tasks.map((key, value) => MapEntry(key, value.toJson()));
@@ -162,7 +162,7 @@ class TodoM {
     }
   }
 
-  static Future _syncTasks(Map<String, Task> tasks) async {
+  static Future<void> _syncTasks(Map<String, Task> tasks) async {
     try {
       final List results = await Future.wait([
         _prefs,

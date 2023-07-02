@@ -10,16 +10,6 @@ Widget loadingCenter() {
   );
 }
 
-// Widget textF(TextEditingController controller) {
-//   return IntrinsicWidth(
-//     child: TextField(
-//       controller: controller,
-//       decoration: const InputDecoration(isDense: true),
-//       // onChanged: (value) => ,
-//     ),
-//   );
-// }
-
 formatDate1(DateTime date) {
   return DateFormat('dd/MM/yy').format(date);
 }
@@ -39,3 +29,7 @@ class BoolWrapper {
 
   BoolWrapper(this.value);
 }
+
+DateTime now = DateTime.now();
+
+DateTime today10 = DateTime(now.year, now.month, now.day, 10, 0);

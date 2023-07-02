@@ -7,15 +7,18 @@ const lastModifiedS = 'lastModified';
 const dueDateS = 'dueDate';
 
 class Task {
+  // save
   String uid;
   DateTime lastModified;
   String title;
-  final titleC = TextEditingController();
   DateTime? dueDate;
+  // ram
+  final titleC = TextEditingController();
   final dateC = TextEditingController();
   bool isDateVisible = false;
   DateTime? time;
   DateTime? date;
+  bool isTimeVisible = false;
 
   Task({required this.title, String? uid, DateTime? lastModified, this.dueDate})
       : uid = uid ?? const Uuid().v1(),

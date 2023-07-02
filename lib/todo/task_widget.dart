@@ -11,8 +11,17 @@ class TaskWidget extends StatelessWidget {
   final Task task;
   final StateSetter setState;
   final BoolWrapper isSyncing;
-  const TaskWidget(this.tasks, this.task, this.setState, this.isSyncing,
-      {super.key});
+  final ScrollController scrollC;
+  final int index;
+  const TaskWidget(
+    this.tasks,
+    this.task,
+    this.setState,
+    this.isSyncing,
+    this.scrollC,
+    this.index, {
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -29,8 +38,7 @@ class TaskWidget extends StatelessWidget {
             controller: task.titleC,
             decoration:
                 const InputDecoration(isDense: true, border: InputBorder.none),
-            // change onChanged to onSubmitted
-            onChanged: (title) => TodoM.modifyTitle(
+            onSubmitted: (title) => TodoM.modifyTitle(
                 TaskObj(tasks, task), title, SyncObj(setState, isSyncing)),
           ),
           subtitle: Column(
@@ -39,8 +47,10 @@ class TaskWidget extends StatelessWidget {
                 child: TextField(
                   controller: task.dateC,
                   onTap: () {
+                    // make scrolling work better
                     task.isDateVisible = true;
                     setState(() {});
+                    scrollC.jumpTo(index * 80.0);
                   },
                   onSubmitted: (value) {
                     task.isDateVisible = false;
@@ -79,18 +89,41 @@ class TaskWidget extends StatelessWidget {
                 ),
                 Column(
                   children: [
-                    TimePickerSpinner(
-                      normalTextStyle: const TextStyle(
-                        fontSize: 24,
-                        color: Colors.white,
+                    Row(
+                      children: [
+                        const Text('Time'),
+                        Switch(
+                          value: task.isTimeVisible,
+                          onChanged: (value) {
+                            task.isTimeVisible = value;
+                            setState(() {});
+                          },
+                        ),
+                      ],
+                    ),
+                    Opacity(
+                      opacity: task.isTimeVisible ? 1 : 0.3,
+                      child: TimePickerSpinner(
+                        normalTextStyle: const TextStyle(
+                          fontSize: 24,
+                          color: Colors.white,
+                        ),
+                        highlightedTextStyle: const TextStyle(
+                          fontSize: 30,
+                          color: Colors.blue,
+                        ),
+                        time: today10,
+                        // format text
+                        onTimeChange: (time) {
+                          if (time != today10) {
+                            task.isTimeVisible = true;
+                          } else {
+                            task.isTimeVisible = false;
+                          }
+                          task.time = time;
+                          setState(() {});
+                        },
                       ),
-                      highlightedTextStyle: const TextStyle(
-                        fontSize: 30,
-                        color: Colors.blue,
-                      ),
-                      time: task.dueDate,
-                      // format text
-                      onTimeChange: (time) => task.time = time,
                     ),
                     Row(
                       children: [

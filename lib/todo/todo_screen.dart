@@ -11,11 +11,13 @@ class TodoScreen extends StatefulWidget {
   @override
   State<TodoScreen> createState() => _TodoScreenState();
 }
+// solve focus pb (q not working after using the textfield)
 
 class _TodoScreenState extends State<TodoScreen> {
   final TextEditingController _titleC = TextEditingController();
   final Map<String, Task> _tasks = {};
   final BoolWrapper _isSyncing = BoolWrapper(false);
+  final ScrollController _scrollC = ScrollController();
 
   @override
   void initState() {
@@ -50,10 +52,12 @@ class _TodoScreenState extends State<TodoScreen> {
             ],
           ),
           body: ListView.builder(
+            controller: _scrollC,
             itemCount: _tasks.length,
-            itemBuilder: (context, index) {
-              final task = _tasks.values.elementAt(index);
-              return TaskWidget(_tasks, task, setState, _isSyncing);
+            itemBuilder: (context, i) {
+              final task = _tasks.values.elementAt(i);
+              return TaskWidget(
+                  _tasks, task, setState, _isSyncing, _scrollC, i);
             },
           ),
           floatingActionButton: FloatingActionButton(
