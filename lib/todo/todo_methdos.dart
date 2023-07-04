@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 // import 'package:jarvis_0/todo/task_widget.dart';
 import 'package:jarvis_0/utils/utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -131,6 +132,34 @@ class TodoM {
     }
   }
 
+  static void textToDate(String dateString, TaskObj tO, SyncObj sO) {
+    // make green the expressions
+    try {
+      final nowYear = DateTime.now().year;
+
+      // find format 1: 3 jul/10 jul
+      RegExp r = RegExp(
+          r"\b(3[01]|[12][0-9]|[1-9])\s(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)",
+          caseSensitive: false);
+      final match = r.firstMatch(dateString);
+
+      if (match != null) {
+        String matchedDate = match.group(0)!;
+        String monthAbbreviation = matchedDate.split(' ')[1].toLowerCase();
+        int? monthIndex = monthMap[monthAbbreviation];
+        String formattedDate =
+            matchedDate.replaceFirst(monthAbbreviation, monthIndex.toString());
+        DateFormat format = DateFormat("d M y", "en_US");
+        DateTime dateTime = format.parse('$formattedDate $nowYear');
+        print(dateTime);
+      } else {}
+
+      // find format 2: 3.6
+    } catch (e) {
+      print(e);
+    }
+  }
+
   static void _saveTask(TaskObj tO, SyncObj sO) {
     syncFun(sO, () {
       _saveTasksLocally(tO.tasks);
@@ -230,3 +259,18 @@ class TaskObj {
 
   TaskObj(this.tasks, this.task);
 }
+
+Map<String, int> monthMap = {
+  'jan': 1,
+  'feb': 2,
+  'mar': 3,
+  'apr': 4,
+  'may': 5,
+  'jun': 6,
+  'jul': 7,
+  'aug': 8,
+  'sep': 9,
+  'oct': 10,
+  'nov': 11,
+  'dec': 12,
+};

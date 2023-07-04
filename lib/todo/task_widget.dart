@@ -23,6 +23,9 @@ class TaskWidget extends StatelessWidget {
     super.key,
   });
 
+  // todo queue
+  // date from title
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -53,6 +56,19 @@ class TaskWidget extends StatelessWidget {
                     scrollC.jumpTo(index * 80.0);
                   },
                   onSubmitted: (value) {
+                    TodoM.textToDate(value, TaskObj(tasks, task),
+                        SyncObj(setState, isSyncing));
+                    // https://www.makeuseof.com/tag/todoist-shortcuts-cheat-sheet/
+                    /*
+                    date
+                      day + month (jan, feb, mar, apr, may, jun, jul, aug, sep, oct, nov, dec)            
+                        3 jul
+                        10 jul
+                        3.06
+                    time
+                      10:00
+                    repetitive
+                     */
                     task.isDateVisible = false;
                     setState(() {});
                   },
@@ -88,42 +104,28 @@ class TaskWidget extends StatelessWidget {
                   ),
                 ),
                 Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Row(
-                      children: [
-                        const Text('Time'),
-                        Switch(
-                          value: task.isTimeVisible,
-                          onChanged: (value) {
-                            task.isTimeVisible = value;
-                            setState(() {});
-                          },
-                        ),
-                      ],
-                    ),
-                    Opacity(
-                      opacity: task.isTimeVisible ? 1 : 0.3,
-                      child: TimePickerSpinner(
-                        normalTextStyle: const TextStyle(
-                          fontSize: 24,
-                          color: Colors.white,
-                        ),
-                        highlightedTextStyle: const TextStyle(
-                          fontSize: 30,
-                          color: Colors.blue,
-                        ),
-                        time: today10,
-                        // format text
-                        onTimeChange: (time) {
-                          if (time != today10) {
-                            task.isTimeVisible = true;
-                          } else {
-                            task.isTimeVisible = false;
-                          }
-                          task.time = time;
-                          setState(() {});
-                        },
+                    TimePickerSpinner(
+                      normalTextStyle: const TextStyle(
+                        fontSize: 20,
+                        color: Colors.white,
                       ),
+                      highlightedTextStyle: const TextStyle(
+                        fontSize: 25,
+                        color: Colors.blue,
+                      ),
+                      time: today10,
+                      // format text
+                      onTimeChange: (time) {
+                        if (time != today10) {
+                          task.isTimeVisible = true;
+                        } else {
+                          task.isTimeVisible = false;
+                        }
+                        task.time = time;
+                        setState(() {});
+                      },
                     ),
                     Row(
                       children: [
