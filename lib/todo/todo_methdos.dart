@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
-// import 'package:jarvis_0/todo/task_widget.dart';
 import 'package:jarvis_0/utils/utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'firestore_methods.dart';
@@ -50,13 +49,13 @@ class TodoM {
     );
   }
 
-  static void loadSyncTasks(Map<String, Task> tasks, SyncObj sO) {
-    syncFun(sO, () => _loadTasks(tasks));
-    syncFun(sO, () => _syncTasks(tasks));
+  static Future loadSyncTasks(Map<String, Task> tasks, SyncObj sO) async {
+    await syncFun(sO, () => _loadTasks(tasks));
+    await syncFun(sO, () => _syncTasks(tasks));
   }
 
-  static void syncTasks(Map<String, Task> tasks, SyncObj sO) {
-    syncFun(sO, () => _syncTasks(tasks));
+  static Future syncTasks(Map<String, Task> tasks, SyncObj sO) async {
+    await syncFun(sO, () => _syncTasks(tasks));
   }
 
   static void addTask(
@@ -135,35 +134,69 @@ class TodoM {
   static void textToDate(String dateString, TaskObj tO, SyncObj sO) {
     // make green the expressions
     try {
-      final nowYear = DateTime.now().year;
+      int? year = DateTime.now().year;
+      int? month;
+      int? day;
+      int? hour = 10;
+      int? minute = 0;
 
       // find format 1: 3 jul/10 jul
       RegExp r = RegExp(
           r"\b(3[01]|[12][0-9]|[1-9])\s(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)",
           caseSensitive: false);
-      final match = r.firstMatch(dateString);
-
+      Match? match = r.firstMatch(dateString);
       if (match != null) {
-        String matchedDate = match.group(0)!;
-        String monthAbbreviation = matchedDate.split(' ')[1].toLowerCase();
-        int? monthIndex = monthMap[monthAbbreviation];
-        String formattedDate =
-            matchedDate.replaceFirst(monthAbbreviation, monthIndex.toString());
-        DateFormat format = DateFormat("d M y", "en_US");
-        DateTime dateTime = format.parse('$formattedDate $nowYear');
-        print(dateTime);
-      } else {}
-
-      // find format 2: 3.6
+        List<String> parts = match.group(0)!.split(' ');
+        month = monthMap[parts[1].toLowerCase()];
+        day = int.parse(parts[0]);
+      } else {
+        // find format 2: 3.6
+        r = RegExp(r"\b(3[01]|[12][0-9]|[1-9])\.(1[012]|[1-9])");
+        match = r.firstMatch(dateString);
+        if (match != null) {
+          List<String> parts = match.group(0)!.split('.');
+          day = int.parse(parts[0]);
+          month = int.parse(parts[1]);
+        }
+      }
+      if (month != null && day != null) {
+        tO.task.isDateVisible = true;
+        tO.task.dueDate = DateTime(year, month, day, hour, minute);
+        _saveTask(tO, sO);
+      } else {
+        dateToText(tO.task);
+      }
     } catch (e) {
       print(e);
     }
   }
 
-  static void _saveTask(TaskObj tO, SyncObj sO) {
-    syncFun(sO, () {
-      _saveTasksLocally(tO.tasks);
-      FirestoreMethdods.addOrModifyTask(tO.task);
+  // https://www.makeuseof.com/tag/todoist-shortcuts-cheat-sheet/
+  /*
+                    date
+                      day + month (jan, feb, mar, apr, may, jun, jul, aug, sep, oct, nov, dec)            
+                        3 jul
+                        10 jul
+                        3.06
+                    time
+                      10:00
+                    repetitive
+                     */
+
+  static void dateToText(Task task) {
+    try {
+      if (task.dueDate != null) {
+        task.dateC.text = DateFormat('d MMM').format(task.dueDate!);
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  static Future _saveTask(TaskObj tO, SyncObj sO) async {
+    await syncFun(sO, () async {
+      await _saveTasksLocally(tO.tasks);
+      await FirestoreMethdods.addOrModifyTask(tO.task);
     });
   }
 
@@ -176,6 +209,7 @@ class TodoM {
       taskMap.forEach((key, value) {
         tasks[key] = Task.fromJson(key, value);
       });
+      print('done');
     } catch (e) {
       print(e);
     }
@@ -184,7 +218,10 @@ class TodoM {
   static Future<void> _saveTasksLocally(Map<String, Task> tasks) async {
     try {
       final prefs = await _prefs;
-      final taskMap = tasks.map((key, value) => MapEntry(key, value.toJson()));
+      final taskMap = tasks.map((key, value) {
+        dateToText(value);
+        return MapEntry(key, value.toJson());
+      });
       await prefs.setString(tasksS, json.encode(taskMap));
     } catch (e) {
       print(e);

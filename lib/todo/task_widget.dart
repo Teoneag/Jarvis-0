@@ -25,6 +25,7 @@ class TaskWidget extends StatelessWidget {
 
   // todo queue
   // date from title
+  // make the new task nicer
 
   @override
   Widget build(BuildContext context) {
@@ -58,17 +59,7 @@ class TaskWidget extends StatelessWidget {
                   onSubmitted: (value) {
                     TodoM.textToDate(value, TaskObj(tasks, task),
                         SyncObj(setState, isSyncing));
-                    // https://www.makeuseof.com/tag/todoist-shortcuts-cheat-sheet/
-                    /*
-                    date
-                      day + month (jan, feb, mar, apr, may, jun, jul, aug, sep, oct, nov, dec)            
-                        3 jul
-                        10 jul
-                        3.06
-                    time
-                      10:00
-                    repetitive
-                     */
+
                     task.isDateVisible = false;
                     setState(() {});
                   },
