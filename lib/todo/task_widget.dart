@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_time_picker_spinner/flutter_time_picker_spinner.dart';
-import 'package:jarvis_0/utils/utils.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
+import '/utils/utils.dart';
 import 'task_model.dart';
 import 'todo_methdos.dart';
 
@@ -23,6 +23,8 @@ class TaskWidget extends StatelessWidget {
     super.key,
   });
 
+// TODO
+// modify this so it takes a taskObj and SyncObj parameters as input
   // todo queue
   // date from title
   // make the new task nicer
@@ -45,31 +47,37 @@ class TaskWidget extends StatelessWidget {
             onSubmitted: (title) => TodoM.modifyTitle(
                 TaskObj(tasks, task), title, SyncObj(setState, isSyncing)),
           ),
-          subtitle: Column(
+          subtitle: Row(
             children: [
               IntrinsicWidth(
                 child: TextField(
-                  controller: task.dateC,
-                  onTap: () {
-                    // make scrolling work better
-                    task.isDateVisible = true;
-                    setState(() {});
-                    scrollC.jumpTo(index * 80.0);
-                  },
-                  onSubmitted: (value) {
-                    TodoM.textToDate(value, TaskObj(tasks, task),
-                        SyncObj(setState, isSyncing));
-
-                    task.isDateVisible = false;
-                    setState(() {});
-                  },
+                  controller: task.daysC,
+                  onTap: () => TodoM.showDate(task, index, scrollC, setState),
+                  onSubmitted: (value) => TodoM.textDaysToDate(value,
+                      TaskObj(tasks, task), SyncObj(setState, isSyncing)),
                   decoration: const InputDecoration(
-                    hintText: 'Date',
+                    hintText: 'days',
                     isDense: true,
                     border: InputBorder.none,
                   ),
                 ),
               ),
+              const SizedBox(width: 5),
+              IntrinsicWidth(
+                child: TextField(
+                  controller: task.dateC,
+                  onTap: () => TodoM.showDate(task, index, scrollC, setState),
+                  onSubmitted: (value) => TodoM.textToDate(value,
+                      TaskObj(tasks, task), SyncObj(setState, isSyncing)),
+                  decoration: const InputDecoration(
+                    hintText: 'date',
+                    isDense: true,
+                    border: InputBorder.none,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 5),
+              Text(task.dayOfWeek),
             ],
           ),
           trailing: Padding(

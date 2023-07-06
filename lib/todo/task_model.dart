@@ -15,9 +15,11 @@ class Task {
   // ram
   final titleC = TextEditingController();
   final dateC = TextEditingController();
+  final daysC = TextEditingController();
   bool isDateVisible = false;
   DateTime? time;
   DateTime? date;
+  String dayOfWeek = '';
   bool isTimeVisible = false;
 
   Task({required this.title, String? uid, DateTime? lastModified, this.dueDate})
@@ -54,6 +56,6 @@ class Task {
   void dispose() {
     titleC.dispose();
     dateC.dispose();
-    // timeC.dispose();
+    daysC.dispose();
   }
 }

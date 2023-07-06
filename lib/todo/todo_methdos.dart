@@ -131,14 +131,78 @@ class TodoM {
     }
   }
 
-  static void textToDate(String dateString, TaskObj tO, SyncObj sO) {
-    // make green the expressions
+  static void showDate(
+      Task task, int index, ScrollController scrollC, StateSetter setState) {
+    // make scrolling work better
+    task.isDateVisible = true;
+    setState(() {});
+    scrollC.jumpTo(index * 80.0);
+  }
+
+  static void dateToText(Task task) {
+    // TODO: make red when overdue, if bigger than 31 days say month, year
     try {
-      int? year = DateTime.now().year;
-      int? month;
-      int? day;
-      int? hour = 10;
-      int? minute = 0;
+      final dueDate = task.dueDate;
+      if (dueDate == null) return;
+
+      task.dayOfWeek = DateFormat('E').format(dueDate).toLowerCase();
+
+      if (now.year == dueDate.year && now.month == dueDate.month) {
+        task.dateC.text = 'this ${DateFormat('d').format(dueDate)}';
+      } else {
+        task.dateC.text = DateFormat('d MMM').format(dueDate).toLowerCase();
+      }
+
+      int diff = _substractDays(now, dueDate);
+      if (diff == 0) {
+        task.daysC.text = 'tod';
+      } else if (diff == 1) {
+        task.daysC.text = 'tom';
+      } else {
+        task.daysC.text = 'in $diff days';
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  static void textToDate(String dateString, TaskObj tO, SyncObj sO) {
+    _textToDate(dateString, tO.task);
+    tO.task.isDateVisible = false;
+    _saveTask(tO, sO);
+  }
+
+  static void textDaysToDate(String daysString, TaskObj tO, SyncObj sO) {
+    _textDaysToDate(daysString, tO.task);
+    tO.task.isDateVisible = false;
+    _saveTask(tO, sO);
+  }
+
+  static void _textDaysToDate(String daysString, Task task) {
+    // TODO: make green the expressions
+    if (daysString.contains('tod')) {
+      task.dueDate = DateTime.now();
+      return;
+    }
+
+    if (daysString.contains('tom')) {
+      task.dueDate = DateTime.now().add(const Duration(days: 1));
+      return;
+    }
+
+    RegExp r = RegExp(r'\d+');
+    int numberOfDays = int.parse(r.firstMatch(daysString)!.group(0)!);
+    task.dueDate = now.add(Duration(days: numberOfDays));
+  }
+
+  static void _textToDate(String dateString, Task task) {
+    // TODO: make green the expressions
+    try {
+      int year = DateTime.now().year;
+      int month = DateTime.now().month;
+      int day = DateTime.now().day;
+      int hour = 10;
+      int minute = 0;
 
       // find format 1: 3 jul/10 jul
       RegExp r = RegExp(
@@ -147,50 +211,43 @@ class TodoM {
       Match? match = r.firstMatch(dateString);
       if (match != null) {
         List<String> parts = match.group(0)!.split(' ');
-        month = monthMap[parts[1].toLowerCase()];
+        month = monthMap[parts[1].toLowerCase()]!;
         day = int.parse(parts[0]);
-      } else {
-        // find format 2: 3.6
-        r = RegExp(r"\b(3[01]|[12][0-9]|[1-9])\.(1[012]|[1-9])");
-        match = r.firstMatch(dateString);
-        if (match != null) {
-          List<String> parts = match.group(0)!.split('.');
-          day = int.parse(parts[0]);
-          month = int.parse(parts[1]);
-        }
+        task.dueDate = DateTime(year, month, day, hour, minute);
+        return;
       }
-      if (month != null && day != null) {
-        tO.task.isDateVisible = true;
-        tO.task.dueDate = DateTime(year, month, day, hour, minute);
-        _saveTask(tO, sO);
-      } else {
-        dateToText(tO.task);
+
+      // find format 2: 3.6
+      r = RegExp(r"\b(3[01]|[12][0-9]|[1-9])\.(1[012]|[1-9])");
+      match = r.firstMatch(dateString);
+      if (match != null) {
+        List<String> parts = match.group(0)!.split('.');
+        day = int.parse(parts[0]);
+        month = int.parse(parts[1]);
+        task.dueDate = DateTime(year, month, day, hour, minute);
+        return;
       }
+
+      // find format this 6
+      r = RegExp(r'\d+');
+      match = r.firstMatch(dateString);
+      if (match != null) {
+        int dayOfMonth = int.parse(match.group(0)!);
+        task.dueDate = DateTime(now.year, now.month, dayOfMonth);
+        return;
+      }
+
+      // no date found
+      dateToText(task);
     } catch (e) {
       print(e);
     }
   }
 
-  // https://www.makeuseof.com/tag/todoist-shortcuts-cheat-sheet/
-  /*
-                    date
-                      day + month (jan, feb, mar, apr, may, jun, jul, aug, sep, oct, nov, dec)            
-                        3 jul
-                        10 jul
-                        3.06
-                    time
-                      10:00
-                    repetitive
-                     */
-
-  static void dateToText(Task task) {
-    try {
-      if (task.dueDate != null) {
-        task.dateC.text = DateFormat('d MMM').format(task.dueDate!);
-      }
-    } catch (e) {
-      print(e);
-    }
+  static int _substractDays(DateTime d1, DateTime d2) {
+    DateTime truncD1 = DateTime(d1.year, d1.month, d1.day);
+    DateTime truncD2 = DateTime(d2.year, d2.month, d2.day);
+    return truncD2.difference(truncD1).inDays;
   }
 
   static Future _saveTask(TaskObj tO, SyncObj sO) async {
