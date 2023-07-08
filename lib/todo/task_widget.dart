@@ -4,16 +4,20 @@ import 'package:flutter_time_picker_spinner/flutter_time_picker_spinner.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import '/utils/utils.dart';
 import 'task_model.dart';
-import 'todo_methdos.dart';
+import 'todo_methods/date_methods.dart';
+import 'todo_methods/task_manager.dart';
+import 'todo_methods/todo_methdos.dart';
 
 class TaskWidget extends StatelessWidget {
-  final Map<String, Task> tasks;
+  late final TaskObj taskO;
+  late final SyncObj syncO;
   final Task task;
+  final Map<String, Task> tasks;
   final StateSetter setState;
   final BoolWrapper isSyncing;
   final ScrollController scrollC;
   final int index;
-  const TaskWidget(
+  TaskWidget(
     this.tasks,
     this.task,
     this.setState,
@@ -21,13 +25,14 @@ class TaskWidget extends StatelessWidget {
     this.scrollC,
     this.index, {
     super.key,
-  });
+  }) {
+    taskO = TaskObj(tasks, task);
+    syncO = SyncObj(setState, isSyncing);
+  }
 
-// TODO
-// modify this so it takes a taskObj and SyncObj parameters as input
-  // todo queue
-  // date from title
-  // make the new task nicer
+// TODO: todo queue
+// TODO: make the new task nicer
+// TODO: save only if different
 
   @override
   Widget build(BuildContext context) {
@@ -37,24 +42,21 @@ class TaskWidget extends StatelessWidget {
           // key: ValueKey(task.uid), // only for reordering (not doing now)
           leading: IconButton(
             icon: const Icon(Icons.check_box_outline_blank),
-            onPressed: () => TodoM.doneTask(
-                TaskObj(tasks, task), SyncObj(setState, isSyncing)),
+            onPressed: () => TodoM.doneTask(taskO, syncO),
           ),
           title: TextField(
             controller: task.titleC,
             decoration:
                 const InputDecoration(isDense: true, border: InputBorder.none),
-            onSubmitted: (title) => TodoM.modifyTitle(
-                TaskObj(tasks, task), title, SyncObj(setState, isSyncing)),
+            onSubmitted: (title) => TodoM.modifyTitle(taskO, title, syncO),
           ),
           subtitle: Row(
             children: [
               IntrinsicWidth(
                 child: TextField(
                   controller: task.daysC,
-                  onTap: () => TodoM.showDate(task, index, scrollC, setState),
-                  onSubmitted: (value) => TodoM.textDaysToDate(value,
-                      TaskObj(tasks, task), SyncObj(setState, isSyncing)),
+                  onTap: () => DateM.showDate(task, index, scrollC, setState),
+                  onSubmitted: (value) => DateM.daysToDate(value, taskO, syncO),
                   decoration: const InputDecoration(
                     hintText: 'days',
                     isDense: true,
@@ -66,9 +68,8 @@ class TaskWidget extends StatelessWidget {
               IntrinsicWidth(
                 child: TextField(
                   controller: task.dateC,
-                  onTap: () => TodoM.showDate(task, index, scrollC, setState),
-                  onSubmitted: (value) => TodoM.textToDate(value,
-                      TaskObj(tasks, task), SyncObj(setState, isSyncing)),
+                  onTap: () => DateM.showDate(task, index, scrollC, setState),
+                  onSubmitted: (value) => DateM.textToDate(value, taskO, syncO),
                   decoration: const InputDecoration(
                     hintText: 'date',
                     isDense: true,
@@ -84,8 +85,7 @@ class TaskWidget extends StatelessWidget {
             padding: const EdgeInsets.only(right: 10),
             child: IconButton(
               icon: const Icon(Icons.delete, color: Colors.red),
-              onPressed: () => TodoM.archiveTask(
-                  TaskObj(tasks, task), SyncObj(setState, isSyncing)),
+              onPressed: () => TodoM.archiveTask(taskO, syncO),
             ),
           ),
         ),
@@ -144,8 +144,7 @@ class TaskWidget extends StatelessWidget {
                             FocusScope.of(context).unfocus();
                             SystemChannels.textInput
                                 .invokeMethod('TextInput.hide');
-                            TodoM.modifyDate(
-                                task.uid, tasks, SyncObj(setState, isSyncing));
+                            DateM.modifyDate(taskO, syncO);
                           },
                           icon: const Icon(Icons.check),
                         ),

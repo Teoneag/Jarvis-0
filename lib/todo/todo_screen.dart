@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '/todo/task_widget.dart';
-import '/todo/todo_methdos.dart';
+import 'todo_methods/task_manager.dart';
+import 'todo_methods/todo_methdos.dart';
 import '/utils/utils.dart';
 import '/todo/task_model.dart';
 
@@ -11,18 +12,21 @@ class TodoScreen extends StatefulWidget {
   @override
   State<TodoScreen> createState() => _TodoScreenState();
 }
+
 // solve focus pb (q not working after using the textfield)
 
 class _TodoScreenState extends State<TodoScreen> {
-  final TextEditingController _titleC = TextEditingController();
+  final _titleC = TextEditingController();
+  final _isSyncing = BoolWrapper(false);
+  final _scrollC = ScrollController();
   final Map<String, Task> _tasks = {};
-  final BoolWrapper _isSyncing = BoolWrapper(false);
-  final ScrollController _scrollC = ScrollController();
+  late final SyncObj sO;
 
   @override
   void initState() {
     super.initState();
-    TodoM.loadSyncTasks(_tasks, SyncObj(setState, _isSyncing));
+    sO = SyncObj(setState, _isSyncing);
+    TodoM.loadSyncTasks(_tasks, sO);
   }
 
   @override
@@ -30,8 +34,7 @@ class _TodoScreenState extends State<TodoScreen> {
     return CallbackShortcuts(
       bindings: {
         const SingleActivator(LogicalKeyboardKey.keyQ): () =>
-            TodoM.displayDialog(
-                _tasks, _titleC, context, SyncObj(setState, _isSyncing)),
+            TodoM.displayDialog(_tasks, _titleC, context, sO),
       },
       child: Focus(
         autofocus: true,
@@ -45,8 +48,7 @@ class _TodoScreenState extends State<TodoScreen> {
                     ? loadingCenter()
                     : IconButton(
                         icon: const Icon(Icons.sync),
-                        onPressed: () => TodoM.syncTasks(
-                            _tasks, SyncObj(setState, _isSyncing)),
+                        onPressed: () => TodoM.syncTasks(_tasks, sO),
                       ),
               ),
             ],
@@ -57,12 +59,17 @@ class _TodoScreenState extends State<TodoScreen> {
             itemBuilder: (context, i) {
               final task = _tasks.values.elementAt(i);
               return TaskWidget(
-                  _tasks, task, setState, _isSyncing, _scrollC, i);
+                _tasks,
+                task,
+                setState,
+                _isSyncing,
+                _scrollC,
+                i,
+              );
             },
           ),
           floatingActionButton: FloatingActionButton(
-            onPressed: () => TodoM.displayDialog(
-                _tasks, _titleC, context, SyncObj(setState, _isSyncing)),
+            onPressed: () => TodoM.displayDialog(_tasks, _titleC, context, sO),
             child: const Icon(Icons.add),
           ),
         ),
