@@ -4,6 +4,7 @@ import '/utils/utils.dart';
 import '../task_model.dart';
 import 'task_manager.dart';
 
+// TODO: make a green highlight on valid part of date + part of title that's date
 // TODO: add hour, minutes, year
 
 class DateM {
@@ -21,7 +22,7 @@ class DateM {
           task.time!.minute,
         );
       }
-      // check with text
+      // TODO: check with text
       task.lastModified = DateTime.now();
       task.isDateVisible = false;
       TaskM.saveTask(tO, sO);
@@ -32,7 +33,7 @@ class DateM {
 
   static void showDate(
       Task task, int index, ScrollController scrollC, StateSetter setState) {
-    // make scrolling work better
+    // TODO: make scrolling work better
     task.isDateVisible = true;
     setState(() {});
     scrollC.jumpTo(index * 80.0);
@@ -65,93 +66,102 @@ class DateM {
     }
   }
 
-  static void textToDate(String dateString, TaskObj tO, SyncObj sO) {
-    _textToDate(dateString, tO.task);
+  static void textToDate(String intpu, TaskObj tO, SyncObj sO) {
+    final string = _text2ToDate(intpu, tO.task);
+    if (string == null) {
+      dateToText(tO.task);
+    } else {
+      tO.task.dateC.text = string;
+    }
     tO.task.isDateVisible = false;
     TaskM.saveTask(tO, sO);
   }
 
-  static void daysToDate(String daysString, TaskObj tO, SyncObj sO) {
-    _daysToDate(daysString, tO.task);
+  static void daysToDate(String input, TaskObj tO, SyncObj sO) {
+    _text1ToDate(input, tO.task);
     tO.task.isDateVisible = false;
     TaskM.saveTask(tO, sO);
   }
 
-  static void titleToDate(String title, Task task) {
-    _textToDate(title, task);
-    _daysToDate(title, task);
+  static void titleToDate(String title, TaskObj tO, SyncObj sO) {
+    String? result = _text1ToDate(title, tO.task);
+    result ??= _text2ToDate(title, tO.task);
+    if (result == null) return;
+    tO.task.title = tO.task.title.replaceAll(result, '');
+    tO.task.title = tO.task.title.replaceAll('  ', ' ');
+    tO.task.titleC.text = tO.task.title;
+    TaskM.saveTask(tO, sO);
   }
 
-  static void _daysToDate(String daysString, Task task) {
+  static String? _text1ToDate(String daysString, Task task) {
     try {
-      // TODO: make green the expressions
+      // tod
       if (daysString.contains('tod')) {
-        task.dueDate = DateTime.now();
-        return;
+        task.dueDate = now;
+        return 'tod';
       }
 
+      // tom
       if (daysString.contains('tom')) {
-        task.dueDate = DateTime.now().add(const Duration(days: 1));
-        return;
+        task.dueDate = now.add(const Duration(days: 1));
+        return 'tom';
       }
 
-      RegExp r = RegExp(
-          r'in (\d+) days'); //TODO: check if it's in 10 days, not only 10
+      // in 3 days
+      RegExp r = RegExp(r'in (\d+) days');
       final match = r.firstMatch(daysString);
-      if (match == null || match.group(0) == null) return;
+      if (match == null || match.group(0) == null) return null;
       int numberOfDays = int.parse(match.group(0)!.split(' ')[1]);
       task.dueDate = now.add(Duration(days: numberOfDays));
+      return 'in $numberOfDays days';
     } catch (e) {
       print(e);
+      return null;
     }
   }
 
-  static void _textToDate(String dateString, Task task) {
-    // TODO: make green the expressions
+  static String? _text2ToDate(String dateString, Task task) {
     try {
-      int year = DateTime.now().year;
-      int month = DateTime.now().month;
-      int day = DateTime.now().day;
-      int hour = 10;
-      int minute = 0;
+      int year = now.year;
+      int month = now.month;
+      int day = now.day;
 
-      // find format 1: 3 jul/10 jul
+      // 3 jul/10 jul
       RegExp r = RegExp(
           r"\b(3[01]|[12][0-9]|[1-9])\s(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)",
           caseSensitive: false);
       Match? match = r.firstMatch(dateString);
-      if (match != null) {
+      if (match != null && match.group(0) != null) {
         List<String> parts = match.group(0)!.split(' ');
         month = monthMap[parts[1].toLowerCase()]!;
         day = int.parse(parts[0]);
-        task.dueDate = DateTime(year, month, day, hour, minute);
-        return;
+        task.dueDate = DateTime(year, month, day);
+        return match.group(0);
       }
 
-      // find format 2: 3.6
+      // 3.6
       r = RegExp(r"\b(3[01]|[12][0-9]|[1-9])\.(1[012]|[1-9])");
       match = r.firstMatch(dateString);
-      if (match != null) {
+      if (match != null && match.group(0) != null) {
         List<String> parts = match.group(0)!.split('.');
         day = int.parse(parts[0]);
         month = int.parse(parts[1]);
-        task.dueDate = DateTime(year, month, day, hour, minute);
-        return;
+        task.dueDate = DateTime(year, month, day);
+        return match.group(0);
       }
 
-      // find format this 6
-      r = RegExp(r'\d+');
+      // this 6
+      r = RegExp(r'this (\d+)');
       match = r.firstMatch(dateString);
-      if (match != null) {
-        int dayOfMonth = int.parse(match.group(0)!);
+      if (match != null && match.group(0) != null) {
+        int dayOfMonth = int.parse(match.group(0)!.split(' ')[1]);
         task.dueDate = DateTime(now.year, now.month, dayOfMonth);
-        return;
+        return match.group(0);
       }
-
-      // no date found
-      dateToText(task);
+      return null;
     } catch (e) {
       print(e);
+      return null;
     }
   }
 

@@ -30,6 +30,7 @@ class TaskWidget extends StatelessWidget {
     syncO = SyncObj(setState, isSyncing);
   }
 
+// TODO: add tags
 // TODO: todo queue
 // TODO: make the new task nicer
 // TODO: save only if different
@@ -117,11 +118,6 @@ class TaskWidget extends StatelessWidget {
                       time: today10,
                       // format text
                       onTimeChange: (time) {
-                        if (time != today10) {
-                          task.isTimeVisible = true;
-                        } else {
-                          task.isTimeVisible = false;
-                        }
                         task.time = time;
                         setState(() {});
                       },

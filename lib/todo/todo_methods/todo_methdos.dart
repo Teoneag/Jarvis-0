@@ -94,7 +94,7 @@ class TodoM {
     try {
       tO.task.title = title;
       tO.task.lastModified = DateTime.now();
-      DateM.titleToDate(title, tO.task);
+      DateM.titleToDate(title, tO, sO);
       TaskM.saveTask(tO, sO);
     } catch (e) {
       print(e);

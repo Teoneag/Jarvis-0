@@ -6,6 +6,11 @@ const titleS = 'title';
 const lastModifiedS = 'lastModified';
 const dueDateS = 'dueDate';
 
+class Sequence {
+  int s, e;
+  Sequence(this.s, this.e);
+}
+
 class Task {
   // save
   String uid;
@@ -20,7 +25,7 @@ class Task {
   DateTime? time;
   DateTime? date;
   String dayOfWeek = '';
-  bool isTimeVisible = false;
+  Sequence? seq;
 
   Task({required this.title, String? uid, DateTime? lastModified, this.dueDate})
       : uid = uid ?? const Uuid().v1(),
