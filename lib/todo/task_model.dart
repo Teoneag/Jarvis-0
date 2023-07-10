@@ -1,3 +1,4 @@
+import 'package:jarvis_0/todo/firestore_methods.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -26,11 +27,18 @@ class Task {
   DateTime? date;
   String dayOfWeek = '';
   Sequence? seq;
+  Set<String> tags = {};
 
-  Task({required this.title, String? uid, DateTime? lastModified, this.dueDate})
+  Task(
+      {required this.title,
+      String? uid,
+      DateTime? lastModified,
+      this.dueDate,
+      Set<String>? tags})
       : uid = uid ?? const Uuid().v1(),
         lastModified = lastModified ?? DateTime.now() {
     titleC.text = title;
+    this.tags = tags ?? {};
   }
 
   factory Task.fromSnap(DocumentSnapshot snap) {
@@ -40,6 +48,7 @@ class Task {
       lastModified: DateTime.tryParse(data[lastModifiedS]),
       title: data[titleS],
       dueDate: DateTime.tryParse(data[dueDateS]),
+      tags: Set<String>.from(data[tagsS]),
     );
   }
 
@@ -49,6 +58,7 @@ class Task {
       lastModified: DateTime.tryParse(json[lastModifiedS]),
       title: json[titleS],
       dueDate: DateTime.tryParse(json[dueDateS].toString()),
+      tags: Set<String>.from(json[tagsS]),
     );
   }
 
@@ -56,6 +66,7 @@ class Task {
         lastModifiedS: lastModified.toString(),
         titleS: title,
         dueDateS: dueDate.toString(),
+        tagsS: tags.toList(),
       };
 
   void dispose() {

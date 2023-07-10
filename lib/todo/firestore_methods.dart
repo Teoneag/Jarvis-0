@@ -5,8 +5,9 @@ import '/utils/utils.dart';
 const tasksS = 'tasks';
 const tasksArchivedS = 'tasksArchived';
 const tasksDoneS = 'tasksDone';
+const tagsS = 'tags';
 
-class FirestoreMethdods {
+class FirestoreM {
   static final _firestore = FirebaseFirestore.instance;
 
   static Future<String> addOrModifyTask(Task task) async {
@@ -43,14 +44,30 @@ class FirestoreMethdods {
     }
   }
 
-  static Future<Task> getTask(String uid) async {
+  static Future<String> tagTask(String tag, String uid) async {
     try {
-      print('Getting task');
-      final docSnap = await _firestore.collection(tasksS).doc(uid).get();
-      return Task.fromSnap(docSnap);
+      // final docSnap = await _firestore.collection(tasksS).doc(uid).get();
+      // final task = Task.fromSnap(docSnap);
+      // task.tags.add(tag);
+      // await _firestore.collection(tasksS).doc(uid).set(task.toJson());
+      await _firestore.collection(tagsS).doc(tag).set({
+        tasksS: FieldValue.arrayUnion([uid])
+      }, SetOptions(merge: true));
+      return successS;
     } catch (e) {
       print(e);
-      return Task(title: 'Error');
+      return '$e';
     }
   }
+
+  // static Future<Task> getTask(String uid) async {
+  //   try {
+  //     print('Getting task');
+  //     final docSnap = await _firestore.collection(tasksS).doc(uid).get();
+  //     return Task.fromSnap(docSnap);
+  //   } catch (e) {
+  //     print(e);
+  //     return Task(title: 'Error');
+  //   }
+  // }
 }

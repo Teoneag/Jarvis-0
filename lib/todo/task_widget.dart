@@ -30,7 +30,8 @@ class TaskWidget extends StatelessWidget {
     syncO = SyncObj(setState, isSyncing);
   }
 
-// TODO: add tags
+// TODO: display tags + delete them from title
+// TODO: manage tags screen
 // TODO: todo queue
 // TODO: make the new task nicer
 // TODO: save only if different
