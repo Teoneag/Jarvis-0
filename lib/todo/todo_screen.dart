@@ -13,7 +13,7 @@ class TodoScreen extends StatefulWidget {
   State<TodoScreen> createState() => _TodoScreenState();
 }
 
-// TODO: solve focus pb (q not working after using the textfield)
+// solve focus pb (q not working after using the textfield)
 
 class _TodoScreenState extends State<TodoScreen> {
   final _titleC = TextEditingController();
