@@ -69,7 +69,7 @@ class TaskM {
             continue;
           }
           tasks[uid] = taskPrefs;
-          FirestoreMethdods.addOrModifyTask(taskPrefs);
+          FirestoreM.addOrModifyTask(taskPrefs);
         }
       }
       for (var doc in docs) {
@@ -86,7 +86,7 @@ class TaskM {
   static Future saveTask(TaskObj tO, SyncObj sO) async {
     await syncFun(sO, () async {
       await saveTasksLocally(tO.tasks);
-      await FirestoreMethdods.addOrModifyTask(tO.task);
+      await FirestoreM.addOrModifyTask(tO.task);
     });
   }
 }

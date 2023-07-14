@@ -2,14 +2,17 @@ import 'package:uuid/uuid.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'tag_model.dart';
+
 const titleS = 'title';
 const lastModifiedS = 'lastModified';
 const dueDateS = 'dueDate';
+const tagsIdsS = 'tagsIds';
 
-class Sequence {
-  int s, e;
-  Sequence(this.s, this.e);
-}
+// class Sequence {
+//   int s, e;
+//   Sequence(this.s, this.e);
+// }
 
 class Task {
   // save
@@ -17,7 +20,10 @@ class Task {
   DateTime lastModified;
   String title;
   DateTime? dueDate;
+  Set<String> tagsIds = {};
+
   // ram
+  Set<Tag> tags = {};
   final titleC = TextEditingController();
   final dateC = TextEditingController();
   final daysC = TextEditingController();
@@ -25,11 +31,17 @@ class Task {
   DateTime? time;
   DateTime? date;
   String dayOfWeek = '';
-  Sequence? seq;
+  // Sequence? seq;
 
-  Task({required this.title, String? uid, DateTime? lastModified, this.dueDate})
+  Task(
+      {required this.title,
+      String? uid,
+      DateTime? lastModified,
+      this.dueDate,
+      Set<String>? tagsIds})
       : uid = uid ?? const Uuid().v1(),
-        lastModified = lastModified ?? DateTime.now() {
+        lastModified = lastModified ?? DateTime.now(),
+        tagsIds = tagsIds ?? {} {
     titleC.text = title;
   }
 
@@ -40,6 +52,7 @@ class Task {
       lastModified: DateTime.tryParse(data[lastModifiedS]),
       title: data[titleS],
       dueDate: DateTime.tryParse(data[dueDateS]),
+      tagsIds: Set<String>.from(data[tagsIdsS]),
     );
   }
 
@@ -49,6 +62,7 @@ class Task {
       lastModified: DateTime.tryParse(json[lastModifiedS]),
       title: json[titleS],
       dueDate: DateTime.tryParse(json[dueDateS].toString()),
+      tagsIds: Set<String>.from(json[tagsIdsS]),
     );
   }
 
@@ -56,6 +70,7 @@ class Task {
         lastModifiedS: lastModified.toString(),
         titleS: title,
         dueDateS: dueDate.toString(),
+        tagsIdsS: tagsIds.toList(),
       };
 
   void dispose() {

@@ -3,18 +3,13 @@
 A new Flutter project.
 
 ## TODO: 
-- add time
-https://pub.dev/packages/syncfusion_flutter_datepicker#installation
-    if today: show only hour
-    if this month: show day
-    if this year: show day, month (3 letters)
-    show day, month(3 letters), year (2 digits)
+- neural coding course
+- for tags: create functions for loading, saving, syncing general things
 - add priority
 - add description
 ### Add
 - Categories
 - Subtasks
-- Time
 - Priority
 - Functions so i don't need whatsapp todo, info, drowssap
 - text for when it's empty
@@ -22,3 +17,18 @@ https://pub.dev/packages/syncfusion_flutter_datepicker#installation
 - add animations
 - save done, archived tasks locally
 ### Firestore back up
+
+# How i want Jarvis to work
+## information model
+Ex: pi = 3.141592
+- date of information aqured
+- source
+    - trust score
+- 
+
+Info about the brain
+10^15 (1 thousand trilion) op/second
+86 billion neuron cells
+10.000 connections/neuron
+Domain i have to study: neural coding
+

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:jarvis_0/todo/todo_methods/date_methods.dart';
+import 'package:jarvis_0/todo/todo_methods/tag_methods.dart';
+import '../tag_model.dart';
 import '/todo/todo_methods/task_manager.dart';
 import '../firestore_methods.dart';
 import '/todo/task_model.dart';
@@ -70,7 +72,7 @@ class TodoM {
       tO.tasks.remove(tO.task.uid);
       await syncFun(sO, () async {
         await TaskM.saveTasksLocally(tO.tasks);
-        await FirestoreMethdods.archiveTask(tO.task.uid);
+        await FirestoreM.archiveTask(tO.task.uid);
       });
     } catch (e) {
       print(e);
@@ -83,18 +85,20 @@ class TodoM {
       tO.tasks.remove(tO.task.uid);
       await syncFun(sO, () async {
         await TaskM.saveTasksLocally(tO.tasks);
-        await FirestoreMethdods.doneTask(tO.task.uid);
+        await FirestoreM.doneTask(tO.task.uid);
       });
     } catch (e) {
       print(e);
     }
   }
 
-  static void modifyTitle(TaskObj tO, String title, SyncObj sO) {
+  static void modifyTitle(
+      Map<String, Tag> tags, TaskObj tO, String title, SyncObj sO) {
     try {
       tO.task.title = title;
       tO.task.lastModified = DateTime.now();
       DateM.titleToDate(title, tO, sO);
+      TagM.titleToTag(title, tO, sO, tags);
       TaskM.saveTask(tO, sO);
     } catch (e) {
       print(e);

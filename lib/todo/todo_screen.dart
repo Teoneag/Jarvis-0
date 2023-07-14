@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '/todo/task_widget.dart';
+import 'tag_model.dart';
 import 'todo_methods/task_manager.dart';
 import 'todo_methods/todo_methdos.dart';
 import '/utils/utils.dart';
@@ -20,6 +21,7 @@ class _TodoScreenState extends State<TodoScreen> {
   final _isSyncing = BoolWrapper(false);
   final _scrollC = ScrollController();
   final Map<String, Task> _tasks = {};
+  final Map<String, Tag> _tags = {};
   late final SyncObj sO;
 
   @override
@@ -59,6 +61,7 @@ class _TodoScreenState extends State<TodoScreen> {
             itemBuilder: (context, i) {
               final task = _tasks.values.elementAt(i);
               return TaskWidget(
+                _tags,
                 _tasks,
                 task,
                 setState,

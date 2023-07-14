@@ -1,13 +1,25 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '/todo/task_model.dart';
 import '/utils/utils.dart';
+import 'tag_model.dart';
 
 const tasksS = 'tasks';
 const tasksArchivedS = 'tasksArchived';
 const tasksDoneS = 'tasksDone';
+const tagsS = 'tags';
 
-class FirestoreMethdods {
+class FirestoreM {
   static final _firestore = FirebaseFirestore.instance;
+
+  static Future<String> addOrModifyTag(Tag tag) async {
+    try {
+      await _firestore.collection(tagsS).doc(tag.title).set(tag.toJson());
+      return successS;
+    } catch (e) {
+      print(e);
+      return '$e';
+    }
+  }
 
   static Future<String> addOrModifyTask(Task task) async {
     try {
