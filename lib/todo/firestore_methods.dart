@@ -11,6 +11,17 @@ const tagsS = 'tags';
 class FirestoreM {
   static final _firestore = FirebaseFirestore.instance;
 
+  static Future<String> existsTag(Tag tag, BoolW boolW) async {
+    try {
+      final docSnap = await _firestore.collection(tagsS).doc(tag.title).get();
+      boolW.v = docSnap.exists;
+      return successS;
+    } catch (e) {
+      print(e);
+      return '$e';
+    }
+  }
+
   static Future<String> addOrModifyTag(Tag tag) async {
     try {
       await _firestore.collection(tagsS).doc(tag.title).set(tag.toJson());
@@ -52,17 +63,6 @@ class FirestoreM {
     } catch (e) {
       print(e);
       return '$e';
-    }
-  }
-
-  static Future<Task> getTask(String uid) async {
-    try {
-      print('Getting task');
-      final docSnap = await _firestore.collection(tasksS).doc(uid).get();
-      return Task.fromSnap(docSnap);
-    } catch (e) {
-      print(e);
-      return Task(title: 'Error');
     }
   }
 }

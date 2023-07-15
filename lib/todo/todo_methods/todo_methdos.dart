@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:jarvis_0/todo/todo_methods/date_methods.dart';
-import 'package:jarvis_0/todo/todo_methods/tag_methods.dart';
-import '../tag_model.dart';
-import '/todo/todo_methods/task_manager.dart';
 import '../firestore_methods.dart';
+import '/utils/utils.dart';
 import '/todo/task_model.dart';
+import '/todo/todo_methods/date_methods.dart';
+import '/todo/todo_methods/tag_methods.dart';
+import '/todo/todo_methods/task_manager.dart';
 
 class TodoM {
   static Future displayDialog(
@@ -92,13 +92,12 @@ class TodoM {
     }
   }
 
-  static void modifyTitle(
-      Map<String, Tag> tags, TaskObj tO, String title, SyncObj sO) {
+  static void modifyTitle(TaskObj tO, String title, SyncObj sO) {
     try {
       tO.task.title = title;
       tO.task.lastModified = DateTime.now();
       DateM.titleToDate(title, tO, sO);
-      TagM.titleToTag(title, tO, sO, tags);
+      TagM.titleToTag(title, tO, sO);
       TaskM.saveTask(tO, sO);
     } catch (e) {
       print(e);

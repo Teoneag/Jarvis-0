@@ -3,10 +3,12 @@
 A new Flutter project.
 
 ## TODO: 
+- make tags page
 - neural coding course
 - for tags: create functions for loading, saving, syncing general things
 - add priority
 - add description
+- undo button
 ### Add
 - Categories
 - Subtasks

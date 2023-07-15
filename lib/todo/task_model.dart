@@ -2,17 +2,10 @@ import 'package:uuid/uuid.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'tag_model.dart';
-
 const titleS = 'title';
 const lastModifiedS = 'lastModified';
 const dueDateS = 'dueDate';
 const tagsIdsS = 'tagsIds';
-
-// class Sequence {
-//   int s, e;
-//   Sequence(this.s, this.e);
-// }
 
 class Task {
   // save
@@ -23,7 +16,6 @@ class Task {
   Set<String> tagsIds = {};
 
   // ram
-  Set<Tag> tags = {};
   final titleC = TextEditingController();
   final dateC = TextEditingController();
   final daysC = TextEditingController();
@@ -31,7 +23,6 @@ class Task {
   DateTime? time;
   DateTime? date;
   String dayOfWeek = '';
-  // Sequence? seq;
 
   Task(
       {required this.title,
@@ -78,4 +69,11 @@ class Task {
     dateC.dispose();
     daysC.dispose();
   }
+}
+
+class TaskObj {
+  final Map<String, Task> tasks;
+  final Task task;
+
+  TaskObj(this.tasks, this.task);
 }

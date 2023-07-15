@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../firestore_methods.dart';
@@ -8,6 +7,9 @@ import '/utils/utils.dart';
 import 'date_methods.dart';
 
 class TaskM {
+  static final _prefs = SharedPreferences.getInstance();
+  static final _firestore = FirebaseFirestore.instance;
+
   static Future<void> loadTasks(Map<String, Task> tasks) async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -17,7 +19,6 @@ class TaskM {
       taskMap.forEach((key, value) {
         tasks[key] = Task.fromJson(key, value);
       });
-      print('done');
     } catch (e) {
       print(e);
     }
@@ -35,9 +36,6 @@ class TaskM {
       print(e);
     }
   }
-
-  static final _prefs = SharedPreferences.getInstance();
-  static final _firestore = FirebaseFirestore.instance;
 
   static Future<void> syncTasks(Map<String, Task> tasks) async {
     try {
@@ -93,24 +91,10 @@ class TaskM {
 
 Future<void> syncFun(SyncObj sO, Function callback) async {
   sO.setState(() {
-    sO.isSyncing.value = true;
+    sO.isSyncing.v = true;
   });
   await callback();
   sO.setState(() {
-    sO.isSyncing.value = false;
+    sO.isSyncing.v = false;
   });
-}
-
-class SyncObj {
-  final StateSetter setState;
-  final BoolWrapper isSyncing;
-
-  SyncObj(this.setState, this.isSyncing);
-}
-
-class TaskObj {
-  final Map<String, Task> tasks;
-  final Task task;
-
-  TaskObj(this.tasks, this.task);
 }

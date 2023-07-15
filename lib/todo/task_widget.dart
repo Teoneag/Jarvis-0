@@ -3,25 +3,21 @@ import 'package:flutter/services.dart';
 import 'package:flutter_time_picker_spinner/flutter_time_picker_spinner.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import '/utils/utils.dart';
-import 'tag_model.dart';
 import 'task_model.dart';
-import 'todo_methods/date_methods.dart';
-import 'todo_methods/task_manager.dart';
 import 'todo_methods/todo_methdos.dart';
+import 'todo_methods/date_methods.dart';
 
 class TaskWidget extends StatelessWidget {
   late final TaskObj tO;
   late final SyncObj sO;
   final Task task;
   final Map<String, Task> tasks;
-  final Map<String, Tag> tags;
   final StateSetter setState;
-  final BoolWrapper isSyncing;
+  final BoolW isSyncing;
   final ScrollController scrollC;
   final int index;
 
   TaskWidget(
-    this.tags,
     this.tasks,
     this.task,
     this.setState,
@@ -34,7 +30,6 @@ class TaskWidget extends StatelessWidget {
     sO = SyncObj(setState, isSyncing);
   }
 
-// TODO: add tags
 // TODO: todo queue
 // TODO: make the new task nicer
 // TODO: save only if different
@@ -53,7 +48,7 @@ class TaskWidget extends StatelessWidget {
             controller: task.titleC,
             decoration:
                 const InputDecoration(isDense: true, border: InputBorder.none),
-            onSubmitted: (title) => TodoM.modifyTitle(tags, tO, title, sO),
+            onSubmitted: (title) => TodoM.modifyTitle(tO, title, sO),
           ),
           subtitle: Row(
             children: [
@@ -83,7 +78,21 @@ class TaskWidget extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 5),
-              Text(task.dayOfWeek),
+              Text(task.dayOfWeek), // TODO: make this modifable as well
+              const SizedBox(width: 5),
+              Expanded(
+                child: SizedBox(
+                  height: 20,
+                  child: Wrap(
+                    // TODO: show multiple lines only if u press on the elipsis
+                    direction: Axis.horizontal,
+                    spacing: 5,
+                    children: task.tagsIds
+                        .map((tagId) => Text(tagId))
+                        .toList(), // TODO: make button to go to tag screen + x to remove tag from task
+                  ),
+                ),
+              ),
             ],
           ),
           trailing: Padding(

@@ -24,12 +24,19 @@ calc(String equation) {
   }
 }
 
-class BoolWrapper {
-  bool value;
+class BoolW {
+  bool v;
 
-  BoolWrapper(this.value);
+  BoolW(this.v);
 }
 
 DateTime now = DateTime.now();
 
 DateTime today10 = DateTime(now.year, now.month, now.day, 10, 0);
+
+class SyncObj {
+  final StateSetter setState;
+  final BoolW isSyncing;
+
+  SyncObj(this.setState, this.isSyncing);
+}

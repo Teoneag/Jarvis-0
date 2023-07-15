@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/material.dart';
 import '/utils/utils.dart';
 import '../task_model.dart';
 import 'task_manager.dart';
@@ -22,7 +22,6 @@ class DateM {
           task.time!.minute,
         );
       }
-      // TODO: check with text
       task.lastModified = DateTime.now();
       task.isDateVisible = false;
       TaskM.saveTask(tO, sO);
